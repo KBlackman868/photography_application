@@ -168,6 +168,7 @@ class PortfolioController extends Controller
 
     /**
      * Compress and resize an image file in place.
+     * Backs up the original so a GD failure never leaves a blank/corrupt file.
      */
     private function compressImage(string $absolutePath, int $maxWidth, int $quality): void
     {
@@ -178,36 +179,59 @@ class PortfolioController extends Controller
 
         [$origW, $origH, $type] = $info;
 
-        $src = match ($type) {
-            IMAGETYPE_JPEG => @imagecreatefromjpeg($absolutePath),
-            IMAGETYPE_PNG  => @imagecreatefrompng($absolutePath),
-            IMAGETYPE_WEBP => @imagecreatefromwebp($absolutePath),
-            IMAGETYPE_GIF  => @imagecreatefromgif($absolutePath),
-            default => null,
-        };
-
-        if (!$src) {
+        // Nothing to do if already within size limit
+        if ($origW <= $maxWidth && $type === IMAGETYPE_JPEG) {
             return;
         }
 
-        // Resize if wider than max
-        if ($origW > $maxWidth) {
-            $newW = $maxWidth;
-            $newH = (int) ($origH * ($maxWidth / $origW));
-            $dst = imagecreatetruecolor($newW, $newH);
-            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
-            imagedestroy($src);
-            $src = $dst;
-        }
+        // Back up original before any destructive work
+        $backup = $absolutePath . '.bak';
+        copy($absolutePath, $backup);
 
-        // Save in the same format as the original to avoid MIME type mismatches
-        match ($type) {
-            IMAGETYPE_PNG  => imagepng($src, $absolutePath, min((int) ($quality / 10), 9)),
-            IMAGETYPE_WEBP => imagewebp($src, $absolutePath, $quality),
-            IMAGETYPE_GIF  => imagegif($src, $absolutePath),
-            default        => imagejpeg($src, $absolutePath, $quality),
-        };
-        imagedestroy($src);
+        try {
+            $src = match ($type) {
+                IMAGETYPE_JPEG => imagecreatefromjpeg($absolutePath),
+                IMAGETYPE_PNG  => imagecreatefrompng($absolutePath),
+                IMAGETYPE_WEBP => imagecreatefromwebp($absolutePath),
+                IMAGETYPE_GIF  => imagecreatefromgif($absolutePath),
+                default => false,
+            };
+
+            if (!$src) {
+                return;
+            }
+
+            // Resize if wider than max
+            if ($origW > $maxWidth) {
+                $newW = $maxWidth;
+                $newH = (int) ($origH * ($maxWidth / $origW));
+                $dst = imagecreatetruecolor($newW, $newH);
+                imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+                imagedestroy($src);
+                $src = $dst;
+            }
+
+            // Save in the same format as the original to avoid MIME type mismatches
+            $saved = match ($type) {
+                IMAGETYPE_PNG  => imagepng($src, $absolutePath, min((int) ($quality / 10), 9)),
+                IMAGETYPE_WEBP => imagewebp($src, $absolutePath, $quality),
+                IMAGETYPE_GIF  => imagegif($src, $absolutePath),
+                default        => imagejpeg($src, $absolutePath, $quality),
+            };
+            imagedestroy($src);
+
+            // If the save failed or produced an empty file, restore the backup
+            if (!$saved || filesize($absolutePath) === 0) {
+                copy($backup, $absolutePath);
+            }
+        } catch (\Throwable $e) {
+            // Restore original on any error
+            if (file_exists($backup)) {
+                copy($backup, $absolutePath);
+            }
+        } finally {
+            @unlink($backup);
+        }
     }
 
     public function destroy(Portfolio $portfolio)
