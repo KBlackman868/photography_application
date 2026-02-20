@@ -18,12 +18,79 @@ use App\Models\Project;
 use App\Models\Studio;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Generate a placeholder image locally using GD.
+     */
+    private function generatePlaceholder(string $storagePath, int $width, int $height, int $seed): string
+    {
+        // Deterministic color from seed
+        mt_srand($seed);
+        $hue = mt_rand(0, 360);
+        $sat = mt_rand(30, 70);
+        $light = mt_rand(40, 65);
+        [$r, $g, $b] = $this->hslToRgb($hue, $sat, $light);
+
+        $img = imagecreatetruecolor($width, $height);
+        $bg = imagecolorallocate($img, $r, $g, $b);
+        imagefill($img, 0, 0, $bg);
+
+        // Add a subtle gradient overlay
+        for ($y = 0; $y < $height; $y++) {
+            $alpha = (int) (80 * ($y / $height));
+            $overlay = imagecolorallocatealpha($img, 0, 0, 0, 127 - $alpha);
+            imageline($img, 0, $y, $width, $y, $overlay);
+        }
+
+        // Add text label
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $text = "{$width}x{$height}";
+        $fontSize = 4;
+        $textWidth = imagefontwidth($fontSize) * strlen($text);
+        $textHeight = imagefontheight($fontSize);
+        imagestring($img, $fontSize, (int)(($width - $textWidth) / 2), (int)(($height - $textHeight) / 2), $text, $white);
+
+        $fullDir = dirname($storagePath);
+        Storage::disk('public')->makeDirectory($fullDir);
+
+        $absolutePath = Storage::disk('public')->path($storagePath);
+        imagejpeg($img, $absolutePath, 80);
+        imagedestroy($img);
+
+        return $storagePath;
+    }
+
+    private function hslToRgb(int $h, int $s, int $l): array
+    {
+        $s /= 100;
+        $l /= 100;
+        $c = (1 - abs(2 * $l - 1)) * $s;
+        $x = $c * (1 - abs(fmod($h / 60, 2) - 1));
+        $m = $l - $c / 2;
+
+        if ($h < 60) { [$r, $g, $b] = [$c, $x, 0]; }
+        elseif ($h < 120) { [$r, $g, $b] = [$x, $c, 0]; }
+        elseif ($h < 180) { [$r, $g, $b] = [0, $c, $x]; }
+        elseif ($h < 240) { [$r, $g, $b] = [0, $x, $c]; }
+        elseif ($h < 300) { [$r, $g, $b] = [$x, 0, $c]; }
+        else { [$r, $g, $b] = [$c, 0, $x]; }
+
+        return [
+            (int)(($r + $m) * 255),
+            (int)(($g + $m) * 255),
+            (int)(($b + $m) * 255),
+        ];
+    }
+
     public function run(): void
     {
+        // Clean up old placeholder images
+        Storage::disk('public')->deleteDirectory('galleries');
+        Storage::disk('public')->deleteDirectory('portfolios');
         // Create studio
         $studio = Studio::create([
             'name' => 'Kyle Blackman Photography',
@@ -179,9 +246,7 @@ class DatabaseSeeder extends Seeder
             'IMG_1140.JPG', 'IMG_1148.JPG', 'IMG_1155.JPG', 'IMG_1163.JPG',
         ];
 
-        // Picsum seed IDs for consistent placeholder images
         $picsumSeedStart = 100;
-
         $colorLabels = [null, null, null, null, 'red', 'green', 'blue', 'yellow', 'purple'];
         $cameras = ['Canon EOS R5', 'Canon EOS R6', 'Sony A7IV', 'Nikon Z6 II'];
         $lenses = ['85mm f/1.4', '35mm f/1.8', '70-200mm f/2.8', '24-70mm f/2.8', '50mm f/1.2'];
@@ -219,16 +284,17 @@ class DatabaseSeeder extends Seeder
             for ($i = 0; $i < $pd['photo_count']; $i++) {
                 $filename = $sampleFilenames[$i % count($sampleFilenames)];
                 $seed = $picsumSeedStart + ($gallery->id * 100) + $i;
-                $previewUrl = "https://picsum.photos/seed/{$seed}/800/600";
-                $thumbUrl = "https://picsum.photos/seed/{$seed}/400/300";
-                $originalUrl = "https://picsum.photos/seed/{$seed}/1600/1200";
+                $baseName = pathinfo($filename, PATHINFO_FILENAME) . "_{$i}";
+                $originalPath = $this->generatePlaceholder("galleries/{$gallery->id}/originals/{$baseName}.jpg", 1600, 1200, $seed);
+                $previewPath = $this->generatePlaceholder("galleries/{$gallery->id}/previews/{$baseName}.jpg", 800, 600, $seed);
+                $thumbPath = $this->generatePlaceholder("galleries/{$gallery->id}/thumbnails/{$baseName}.jpg", 400, 300, $seed);
                 $photo = Photo::create([
                     'gallery_id' => $gallery->id,
                     'uploaded_by' => $admin->id,
                     'filename' => $filename,
-                    'original_path' => $originalUrl,
-                    'preview_path' => $previewUrl,
-                    'thumb_path' => $thumbUrl,
+                    'original_path' => $originalPath,
+                    'preview_path' => $previewPath,
+                    'thumb_path' => $thumbPath,
                     'mime_type' => 'image/jpeg',
                     'file_size' => fake()->numberBetween(2000000, 15000000),
                     'width' => fake()->randomElement([5472, 6720, 4032, 8256]),
@@ -377,10 +443,10 @@ class DatabaseSeeder extends Seeder
                 'sort_order' => $i,
             ]);
 
-            // Add portfolio photos with picsum placeholders
+            // Add portfolio photos with local placeholder images
             for ($j = 0; $j < 6; $j++) {
                 $seed = 500 + ($portfolio->id * 10) + $j;
-                $photoPath = "https://picsum.photos/seed/{$seed}/800/600";
+                $photoPath = $this->generatePlaceholder("portfolios/{$portfolio->id}/photo_{$j}.jpg", 800, 600, $seed);
                 PortfolioPhoto::create([
                     'portfolio_id' => $portfolio->id,
                     'photo_path' => $photoPath,

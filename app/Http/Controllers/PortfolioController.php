@@ -92,6 +92,9 @@ class PortfolioController extends Controller
         foreach ($request->file('photos') as $file) {
             $path = $file->store("portfolios/{$portfolio->id}", 'public');
 
+            // Compress and resize the image to max 1920px wide
+            $this->compressImage(Storage::disk('public')->path($path), 1920, 85);
+
             PortfolioPhoto::create([
                 'portfolio_id' => $portfolio->id,
                 'photo_path' => $path,
@@ -161,6 +164,45 @@ class PortfolioController extends Controller
         $portfolio->update($validated);
 
         return back()->with('success', 'Portfolio updated.');
+    }
+
+    /**
+     * Compress and resize an image file in place.
+     */
+    private function compressImage(string $absolutePath, int $maxWidth, int $quality): void
+    {
+        $info = @getimagesize($absolutePath);
+        if (!$info) {
+            return;
+        }
+
+        [$origW, $origH, $type] = $info;
+
+        $src = match ($type) {
+            IMAGETYPE_JPEG => @imagecreatefromjpeg($absolutePath),
+            IMAGETYPE_PNG  => @imagecreatefrompng($absolutePath),
+            IMAGETYPE_WEBP => @imagecreatefromwebp($absolutePath),
+            IMAGETYPE_GIF  => @imagecreatefromgif($absolutePath),
+            default => null,
+        };
+
+        if (!$src) {
+            return;
+        }
+
+        // Resize if wider than max
+        if ($origW > $maxWidth) {
+            $newW = $maxWidth;
+            $newH = (int) ($origH * ($maxWidth / $origW));
+            $dst = imagecreatetruecolor($newW, $newH);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+            imagedestroy($src);
+            $src = $dst;
+        }
+
+        // Save as JPEG for compression
+        imagejpeg($src, $absolutePath, $quality);
+        imagedestroy($src);
     }
 
     public function destroy(Portfolio $portfolio)
