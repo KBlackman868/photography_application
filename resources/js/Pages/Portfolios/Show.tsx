@@ -65,7 +65,11 @@ export default function PortfolioShow({ portfolio }: Props) {
                                             src={photo.photo_path.startsWith('http') ? photo.photo_path : `/storage/${photo.photo_path}`}
                                             alt={photo.caption || portfolio.title}
                                             className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                            loading="lazy"
+                                            onError={(e) => {
+                                                e.currentTarget.src = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" fill="%23f1f5f9"><rect width="400" height="400"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-size="14" font-family="system-ui">Image not found</text></svg>')}`;
+                                                e.currentTarget.onerror = null;
+                                            }}
                                         />
                                         {photo.caption && (
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">

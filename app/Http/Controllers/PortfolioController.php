@@ -200,8 +200,13 @@ class PortfolioController extends Controller
             $src = $dst;
         }
 
-        // Save as JPEG for compression
-        imagejpeg($src, $absolutePath, $quality);
+        // Save in the same format as the original to avoid MIME type mismatches
+        match ($type) {
+            IMAGETYPE_PNG  => imagepng($src, $absolutePath, min((int) ($quality / 10), 9)),
+            IMAGETYPE_WEBP => imagewebp($src, $absolutePath, $quality),
+            IMAGETYPE_GIF  => imagegif($src, $absolutePath),
+            default        => imagejpeg($src, $absolutePath, $quality),
+        };
         imagedestroy($src);
     }
 
