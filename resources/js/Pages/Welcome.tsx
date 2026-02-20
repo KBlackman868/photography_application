@@ -52,6 +52,15 @@ export default function Welcome({
     }, []);
 
     const scrollToSection = (id: string) => {
+        // Navigate to dedicated pages for Portfolio and Book
+        if (id === 'portfolio') {
+            window.location.href = '/portfolio';
+            return;
+        }
+        if (id === 'book') {
+            window.location.href = '/book';
+            return;
+        }
         const element = document.getElementById(id);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth' });

@@ -9,21 +9,33 @@ use Inertia\Inertia;
 
 class PortfolioController extends Controller
 {
+    /**
+     * Public portfolio page - grouped by category
+     */
+    public function publicIndex()
+    {
+        $portfolios = Portfolio::published()
+            ->withCount('portfolioPhotos')
+            ->with('portfolioPhotos')
+            ->orderBy('sort_order')
+            ->get();
+
+        return Inertia::render('Portfolios/Public', [
+            'portfolios' => $portfolios,
+        ]);
+    }
+
+    /**
+     * Admin portfolio management
+     */
     public function index(Request $request)
     {
         $user = $request->user();
 
-        if ($user && $user->isAdmin()) {
-            $portfolios = Portfolio::where('studio_id', $user->studio_id)
-                ->withCount('portfolioPhotos')
-                ->orderBy('sort_order')
-                ->get();
-        } else {
-            $portfolios = Portfolio::published()
-                ->withCount('portfolioPhotos')
-                ->orderBy('sort_order')
-                ->get();
-        }
+        $portfolios = Portfolio::where('studio_id', $user->studio_id)
+            ->withCount('portfolioPhotos')
+            ->orderBy('sort_order')
+            ->get();
 
         return Inertia::render('Portfolios/Index', [
             'portfolios' => $portfolios,

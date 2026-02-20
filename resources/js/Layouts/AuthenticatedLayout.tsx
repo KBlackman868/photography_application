@@ -66,6 +66,12 @@ export default function Authenticated({
                                             Portfolios
                                         </NavLink>
                                         <NavLink
+                                            href={route('bookings.index')}
+                                            active={route().current('bookings.*')}
+                                        >
+                                            Bookings
+                                        </NavLink>
+                                        <NavLink
                                             href={route('settings.index')}
                                             active={route().current('settings.*')}
                                         >
@@ -176,6 +182,12 @@ export default function Authenticated({
                                     active={route().current('portfolios.*')}
                                 >
                                     Portfolios
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('bookings.index')}
+                                    active={route().current('bookings.*')}
+                                >
+                                    Bookings
                                 </ResponsiveNavLink>
                                 <ResponsiveNavLink
                                     href={route('settings.index')}

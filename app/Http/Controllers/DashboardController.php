@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use App\Models\Gallery;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -30,14 +31,34 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $recentBookings = Booking::where('studio_id', $studioId)
+            ->latest('created_at')
+            ->take(5)
+            ->get();
+
+        $upcomingBookings = Booking::where('studio_id', $studioId)
+            ->whereNotIn('status', ['cancelled', 'completed'])
+            ->where('session_date', '>=', now())
+            ->orderBy('session_date')
+            ->take(5)
+            ->get();
+
         $stats = [
             'total_projects' => Project::where('studio_id', $studioId)->count(),
             'active_galleries' => Gallery::where('studio_id', $studioId)->whereIn('status', ['published', 'review'])->count(),
             'pending_reviews' => Gallery::where('studio_id', $studioId)->where('status', 'review')->count(),
+            'total_bookings' => Booking::where('studio_id', $studioId)->count(),
+            'upcoming_sessions' => Booking::where('studio_id', $studioId)
+                ->whereNotIn('status', ['cancelled', 'completed'])
+                ->where('session_date', '>=', now())
+                ->count(),
+            'pending_inquiries' => Booking::where('studio_id', $studioId)->where('status', 'inquiry')->count(),
         ];
 
         return Inertia::render('Dashboard', [
             'recentProjects' => $recentProjects,
+            'recentBookings' => $recentBookings,
+            'upcomingBookings' => $upcomingBookings,
             'stats' => $stats,
             'isAdmin' => true,
         ]);

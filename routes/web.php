@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GalleryController;
@@ -20,8 +21,15 @@ Route::get('/', function () {
 });
 
 // Public portfolio routes
-Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.public');
+Route::get('/portfolio', [PortfolioController::class, 'publicIndex'])->name('portfolio.public');
 Route::get('/portfolio/{portfolio:slug}', [PortfolioController::class, 'show'])->name('portfolio.public.show');
+
+// Public booking routes
+Route::get('/book', [BookingController::class, 'create'])->name('bookings.create');
+Route::post('/book', [BookingController::class, 'store'])->name('bookings.store');
+
+// API: booking availability (public)
+Route::get('/api/availability', [BookingController::class, 'availability'])->name('bookings.availability');
 
 // Authenticated routes
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -31,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Galleries
@@ -45,6 +54,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Portfolios (admin management)
     Route::resource('portfolios', PortfolioController::class)->except(['show']);
+
+    // Bookings (admin)
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/calendar', [BookingController::class, 'calendar'])->name('bookings.calendar');
+    Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
 
     // Settings (admin only)
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
