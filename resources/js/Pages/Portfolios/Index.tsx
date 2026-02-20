@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Portfolio, PageProps } from '@/types';
 import { useState } from 'react';
@@ -62,10 +62,10 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                                     ? (portfolio.cover_photo_path.startsWith('http') ? portfolio.cover_photo_path : `/storage/${portfolio.cover_photo_path}`)
                                     : null;
                                 return (
-                                    <Link
+                                    <div
                                         key={portfolio.id}
-                                        href={`/portfolios/${portfolio.id}/edit`}
-                                        className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all block"
+                                        onClick={() => router.visit(`/portfolios/${portfolio.id}/edit`)}
+                                        className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all cursor-pointer"
                                     >
                                         <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
                                             {coverSrc ? (
@@ -106,7 +106,7 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                                                 </span>
                                             </div>
                                         </div>
-                                    </Link>
+                                    </div>
                                 );
                             })}
                         </div>
