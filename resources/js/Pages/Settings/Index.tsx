@@ -40,11 +40,11 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
                 <div className="mx-auto max-w-4xl px-6 space-y-8">
                     {/* Studio Settings */}
                     <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-                        <h3 className="font-bold text-lg mb-6">Studio Settings</h3>
+                        <h3 className="font-bold text-lg mb-6">Business Settings</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Studio Name</label>
+                                <label className="block text-sm font-medium mb-1">Business Name</label>
                                 <input
                                     type="text"
                                     value={data.name}

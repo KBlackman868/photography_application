@@ -25,9 +25,9 @@ export default function Authenticated({
                                     <span className="material-symbols-outlined text-lg block">photo_camera</span>
                                 </div>
                                 <div>
-                                    <h1 className="font-bold text-sm tracking-tight">Lumina Studios</h1>
+                                    <h1 className="font-bold text-sm tracking-tight">Kyle Blackman Photography</h1>
                                     <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
-                                        {isAdmin ? 'Studio Portal' : 'Client Portal'}
+                                        {isAdmin ? 'Admin Portal' : 'Client Portal'}
                                     </p>
                                 </div>
                             </Link>

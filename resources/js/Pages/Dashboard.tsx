@@ -29,7 +29,7 @@ export default function Dashboard({ auth, recentProjects, galleries, stats, isAd
                         </h3>
                         <p className="text-sm text-slate-500 mt-1">
                             {isAdmin
-                                ? "Here's an overview of your studio."
+                                ? "Here's an overview of your business."
                                 : 'Here are your galleries and selections.'}
                         </p>
                     </div>

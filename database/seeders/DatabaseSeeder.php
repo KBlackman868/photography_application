@@ -26,10 +26,10 @@ class DatabaseSeeder extends Seeder
     {
         // Create studio
         $studio = Studio::create([
-            'name' => 'Lumina Studios',
-            'slug' => 'lumina-studios',
+            'name' => 'Kyle Blackman Photography',
+            'slug' => 'kyle-blackman-photography',
             'description' => 'Capturing life\'s most precious moments with artistry and heart.',
-            'email' => 'hello@luminastudios.com',
+            'email' => 'kyle@kyleblackmanphoto.com',
             'phone' => '(805) 555-0142',
             'website' => 'https://luminastudios.com',
             'timezone' => 'America/Los_Angeles',
@@ -46,19 +46,19 @@ class DatabaseSeeder extends Seeder
 
         // Create admin/photographer
         $admin = User::factory()->create([
-            'name' => 'Sarah Chen',
-            'email' => 'sarah@luminastudios.com',
+            'name' => 'Kyle Blackman',
+            'email' => 'kyle@kyleblackmanphoto.com',
             'password' => bcrypt('password'),
             'studio_id' => $studio->id,
             'role' => 'admin',
             'phone' => '(805) 555-0142',
-            'bio' => 'Lead photographer and founder of Lumina Studios. Specializing in family, wedding, and portrait photography.',
+            'bio' => 'Professional photographer specializing in family, wedding, and portrait photography.',
         ]);
 
         // Create editor
         $editor = User::factory()->create([
             'name' => 'Marcus Rivera',
-            'email' => 'marcus@luminastudios.com',
+            'email' => 'marcus@kyleblackmanphoto.com',
             'password' => bcrypt('password'),
             'studio_id' => $studio->id,
             'role' => 'editor',
@@ -417,8 +417,8 @@ class DatabaseSeeder extends Seeder
         $this->createRolesAndPermissions();
 
         echo "Seeded successfully!\n";
-        echo "Admin login: sarah@luminastudios.com / password\n";
-        echo "Editor login: marcus@luminastudios.com / password\n";
+        echo "Admin login: kyle@kyleblackmanphoto.com / password\n";
+        echo "Editor login: marcus@kyleblackmanphoto.com / password\n";
         echo "Client login: emily@millers.com / password\n";
     }
 
