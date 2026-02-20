@@ -1,0 +1,210 @@
+import { Head, Link, router } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Gallery, Photo, PageProps } from '@/types';
+import { useState, useCallback } from 'react';
+import axios from 'axios';
+
+interface Props extends PageProps {
+    gallery: Gallery;
+    photos: { data: Photo[]; links: any; meta: any };
+}
+
+export default function GalleryShow({ auth, gallery, photos }: Props) {
+    const [photoList, setPhotoList] = useState<Photo[]>(photos.data);
+    const [search, setSearch] = useState('');
+
+    const handleFavorite = useCallback(async (photoId: number) => {
+        setPhotoList((prev) =>
+            prev.map((p) =>
+                p.id === photoId
+                    ? {
+                          ...p,
+                          is_favorited: !p.is_favorited,
+                          favorites_count: p.is_favorited
+                              ? p.favorites_count - 1
+                              : p.favorites_count + 1,
+                      }
+                    : p,
+            ),
+        );
+        try {
+            await axios.post(`/api/photos/${photoId}/favorite`);
+        } catch {
+            setPhotoList((prev) =>
+                prev.map((p) =>
+                    p.id === photoId
+                        ? {
+                              ...p,
+                              is_favorited: !p.is_favorited,
+                              favorites_count: p.is_favorited
+                                  ? p.favorites_count - 1
+                                  : p.favorites_count + 1,
+                          }
+                        : p,
+                ),
+            );
+        }
+    }, []);
+
+    return (
+        <AuthenticatedLayout
+            header={
+                <div className="flex items-center justify-between">
+                    <div>
+                        <nav className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                            <Link href="/galleries" className="hover:text-primary">
+                                Galleries
+                            </Link>
+                            <span className="material-symbols-outlined text-xs">
+                                chevron_right
+                            </span>
+                            <span className="text-slate-900 dark:text-white font-medium">
+                                {gallery.name}
+                            </span>
+                        </nav>
+                        <h2 className="text-2xl font-bold tracking-tight">{gallery.name}</h2>
+                        {gallery.description && (
+                            <p className="text-sm text-slate-500 mt-1">{gallery.description}</p>
+                        )}
+                    </div>
+                    <div className="flex gap-3">
+                        <Link
+                            href={`/galleries/${gallery.id}/review`}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:brightness-110 shadow-lg shadow-primary/20 transition-all"
+                        >
+                            <span className="material-symbols-outlined text-lg">rate_review</span>
+                            Open Review Panel
+                        </Link>
+                    </div>
+                </div>
+            }
+        >
+            <Head title={gallery.name} />
+
+            <div className="py-8">
+                <div className="mx-auto max-w-7xl px-6">
+                    {/* Stats bar */}
+                    <div className="flex items-center gap-6 mb-8 text-sm text-slate-600">
+                        <span className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-primary text-lg">
+                                photo_library
+                            </span>
+                            {gallery.photo_count} Photos
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-lg">
+                                {gallery.status === 'approved' ? 'check_circle' : 'pending'}
+                            </span>
+                            <span className="capitalize">{gallery.status}</span>
+                        </span>
+                        {gallery.project?.client && (
+                            <span className="flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-lg">person</span>
+                                {gallery.project.client.name}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Search */}
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="relative flex-grow max-w-xs">
+                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">
+                                search
+                            </span>
+                            <input
+                                type="text"
+                                placeholder="Search filenames..."
+                                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none w-full"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Masonry grid */}
+                    <div
+                        className="columns-1 sm:columns-2 lg:columns-3 gap-6"
+                        style={{ columnGap: '1.5rem' }}
+                    >
+                        {photoList
+                            .filter(
+                                (p) =>
+                                    !search ||
+                                    p.filename.toLowerCase().includes(search.toLowerCase()),
+                            )
+                            .map((photo) => (
+                                <div
+                                    key={photo.id}
+                                    className="break-inside-avoid mb-6 group relative rounded-xl overflow-hidden cursor-zoom-in"
+                                >
+                                    <img
+                                        src={photo.preview_url}
+                                        alt={photo.filename}
+                                        className="w-full h-auto block transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-white text-xs font-medium opacity-80">
+                                                {photo.filename}
+                                            </span>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        router.visit(
+                                                            `/galleries/${gallery.id}/review?photo_id=${photo.id}`,
+                                                        );
+                                                    }}
+                                                    className="size-10 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white hover:text-primary transition-all flex items-center justify-center"
+                                                >
+                                                    <span className="material-symbols-outlined text-xl">
+                                                        chat_bubble
+                                                    </span>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleFavorite(photo.id);
+                                                    }}
+                                                    className={`size-10 rounded-full transition-all flex items-center justify-center ${
+                                                        photo.is_favorited
+                                                            ? 'bg-primary text-white shadow-lg'
+                                                            : 'bg-white/20 backdrop-blur-md text-white hover:bg-white hover:text-red-500'
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className="material-symbols-outlined text-xl"
+                                                        style={{
+                                                            fontVariationSettings:
+                                                                photo.is_favorited
+                                                                    ? "'FILL' 1"
+                                                                    : "'FILL' 0",
+                                                        }}
+                                                    >
+                                                        favorite
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                    </div>
+
+                    {photoList.length === 0 && (
+                        <div className="text-center py-16 text-slate-400">
+                            <span className="material-symbols-outlined text-5xl mb-4 block">
+                                photo_library
+                            </span>
+                            <p className="text-lg font-medium">No photos yet</p>
+                            <p className="text-sm mt-1">
+                                Upload photos to this gallery to get started.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}
