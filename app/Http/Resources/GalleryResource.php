@@ -16,7 +16,9 @@ class GalleryResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'cover_photo_path' => $this->cover_photo_path ? asset('storage/'.$this->cover_photo_path) : null,
+            'cover_photo_path' => $this->cover_photo_path
+                ? (str_starts_with($this->cover_photo_path, 'http') ? $this->cover_photo_path : asset('storage/'.$this->cover_photo_path))
+                : null,
             'status' => $this->status,
             'is_public' => $this->is_public,
             'allow_downloads' => $this->allow_downloads,

@@ -179,6 +179,9 @@ class DatabaseSeeder extends Seeder
             'IMG_1140.JPG', 'IMG_1148.JPG', 'IMG_1155.JPG', 'IMG_1163.JPG',
         ];
 
+        // Picsum seed IDs for consistent placeholder images
+        $picsumSeedStart = 100;
+
         $colorLabels = [null, null, null, null, 'red', 'green', 'blue', 'yellow', 'purple'];
         $cameras = ['Canon EOS R5', 'Canon EOS R6', 'Sony A7IV', 'Nikon Z6 II'];
         $lenses = ['85mm f/1.4', '35mm f/1.8', '70-200mm f/2.8', '24-70mm f/2.8', '50mm f/1.2'];
@@ -215,13 +218,17 @@ class DatabaseSeeder extends Seeder
             $photos = [];
             for ($i = 0; $i < $pd['photo_count']; $i++) {
                 $filename = $sampleFilenames[$i % count($sampleFilenames)];
+                $seed = $picsumSeedStart + ($gallery->id * 100) + $i;
+                $previewUrl = "https://picsum.photos/seed/{$seed}/800/600";
+                $thumbUrl = "https://picsum.photos/seed/{$seed}/400/300";
+                $originalUrl = "https://picsum.photos/seed/{$seed}/1600/1200";
                 $photo = Photo::create([
                     'gallery_id' => $gallery->id,
                     'uploaded_by' => $admin->id,
                     'filename' => $filename,
-                    'original_path' => "galleries/{$gallery->id}/originals/{$filename}",
-                    'preview_path' => "galleries/{$gallery->id}/previews/{$filename}",
-                    'thumb_path' => "galleries/{$gallery->id}/thumbnails/{$filename}",
+                    'original_path' => $originalUrl,
+                    'preview_path' => $previewUrl,
+                    'thumb_path' => $thumbUrl,
                     'mime_type' => 'image/jpeg',
                     'file_size' => fake()->numberBetween(2000000, 15000000),
                     'width' => fake()->randomElement([5472, 6720, 4032, 8256]),
@@ -245,6 +252,13 @@ class DatabaseSeeder extends Seeder
                     'is_featured' => fake()->boolean(10),
                 ]);
                 $photos[] = $photo;
+            }
+
+            // Set cover photo for gallery from first photo
+            if (count($photos) > 0) {
+                $gallery->update([
+                    'cover_photo_path' => $photos[0]->preview_path,
+                ]);
             }
 
             // Add favorites (from client)
@@ -363,14 +377,22 @@ class DatabaseSeeder extends Seeder
                 'sort_order' => $i,
             ]);
 
-            // Add portfolio photos
+            // Add portfolio photos with picsum placeholders
             for ($j = 0; $j < 6; $j++) {
+                $seed = 500 + ($portfolio->id * 10) + $j;
+                $photoPath = "https://picsum.photos/seed/{$seed}/800/600";
                 PortfolioPhoto::create([
                     'portfolio_id' => $portfolio->id,
-                    'photo_path' => "portfolios/{$portfolio->id}/photo_{$j}.jpg",
+                    'photo_path' => $photoPath,
                     'caption' => fake()->optional(0.5)->sentence(4),
                     'sort_order' => $j,
                 ]);
+            }
+
+            // Set cover photo for portfolio
+            $firstPhoto = $portfolio->portfolioPhotos()->orderBy('sort_order')->first();
+            if ($firstPhoto) {
+                $portfolio->update(['cover_photo_path' => $firstPhoto->photo_path]);
             }
         }
 

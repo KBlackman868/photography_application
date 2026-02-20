@@ -7,6 +7,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PhotoResource extends JsonResource
 {
+    private function toUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        return str_starts_with($path, 'http') ? $path : asset('storage/'.$path);
+    }
+
     public function toArray(Request $request): array
     {
         $user = $request->user();
@@ -15,9 +24,9 @@ class PhotoResource extends JsonResource
             'id' => $this->id,
             'gallery_id' => $this->gallery_id,
             'filename' => $this->filename,
-            'preview_url' => $this->preview_path ? asset('storage/'.$this->preview_path) : asset('storage/'.$this->original_path),
-            'thumb_url' => $this->thumb_path ? asset('storage/'.$this->thumb_path) : asset('storage/'.$this->original_path),
-            'original_url' => $user?->isAdmin() ? asset('storage/'.$this->original_path) : null,
+            'preview_url' => $this->toUrl($this->preview_path ?: $this->original_path),
+            'thumb_url' => $this->toUrl($this->thumb_path ?: $this->original_path),
+            'original_url' => $user?->isAdmin() ? $this->toUrl($this->original_path) : null,
             'mime_type' => $this->mime_type,
             'file_size' => $this->file_size,
             'width' => $this->width,
