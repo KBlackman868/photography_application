@@ -44,11 +44,11 @@ class DatabaseSeeder extends Seeder
             ],
         ]);
 
-        // Create admin/photographer
+        // Create admin/photographer (primary account)
         $admin = User::factory()->create([
             'name' => 'Kyle Blackman',
-            'email' => 'kyle@kyleblackmanphoto.com',
-            'password' => bcrypt('password'),
+            'email' => 'kjrblackman@gmail.com',
+            'password' => bcrypt('Ebenezer@2026'),
             'studio_id' => $studio->id,
             'role' => 'admin',
             'phone' => '(805) 555-0142',
@@ -417,7 +417,7 @@ class DatabaseSeeder extends Seeder
         $this->createRolesAndPermissions();
 
         echo "Seeded successfully!\n";
-        echo "Admin login: kyle@kyleblackmanphoto.com / password\n";
+        echo "Admin login: kjrblackman@gmail.com / Ebenezer@2026\n";
         echo "Editor login: marcus@kyleblackmanphoto.com / password\n";
         echo "Client login: emily@millers.com / password\n";
     }
