@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Gallery, Photo, PageProps } from '@/types';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 interface Props extends PageProps {
@@ -12,6 +12,42 @@ interface Props extends PageProps {
 export default function GalleryShow({ auth, gallery, photos }: Props) {
     const [photoList, setPhotoList] = useState<Photo[]>(photos.data);
     const [search, setSearch] = useState('');
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [dragOver, setDragOver] = useState(false);
+    const fileInput = useRef<HTMLInputElement>(null);
+    const isAdmin = auth.user.role !== 'client';
+
+    const handleFileUpload = useCallback(async (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+
+        const formData = new FormData();
+        Array.from(files).forEach((file) => {
+            formData.append('photos[]', file);
+        });
+
+        setUploading(true);
+        setUploadProgress(0);
+        try {
+            const response = await axios.post(
+                `/api/galleries/${gallery.id}/photos/upload`,
+                formData,
+                {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                    onUploadProgress: (e) => {
+                        if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total));
+                    },
+                },
+            );
+            setPhotoList((prev) => [...prev, ...response.data.data]);
+        } catch (err) {
+            console.error('Upload failed:', err);
+        } finally {
+            setUploading(false);
+            setUploadProgress(0);
+            if (fileInput.current) fileInput.current.value = '';
+        }
+    }, [gallery.id]);
 
     const handleFavorite = useCallback(async (photoId: number) => {
         setPhotoList((prev) =>
@@ -120,6 +156,49 @@ export default function GalleryShow({ auth, gallery, photos }: Props) {
                             />
                         </div>
                     </div>
+
+                    {/* Upload zone (admin/editor only) */}
+                    {isAdmin && (
+                        <div
+                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                            onDragLeave={() => setDragOver(false)}
+                            onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFileUpload(e.dataTransfer.files); }}
+                            onClick={() => fileInput.current?.click()}
+                            className={`mb-8 border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer ${
+                                dragOver
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-slate-200 hover:border-slate-300 bg-white dark:bg-slate-900'
+                            }`}
+                        >
+                            <input
+                                ref={fileInput}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={(e) => handleFileUpload(e.target.files)}
+                                className="hidden"
+                            />
+                            <span className="material-symbols-outlined text-4xl text-slate-300 mb-2 block">
+                                {uploading ? 'hourglass_top' : 'cloud_upload'}
+                            </span>
+                            {uploading ? (
+                                <>
+                                    <p className="font-semibold text-sm">Uploading... {uploadProgress}%</p>
+                                    <div className="mt-3 mx-auto max-w-xs h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-primary rounded-full transition-all duration-300"
+                                            style={{ width: `${uploadProgress}%` }}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="font-semibold text-sm">Drag & drop photos here or click to browse</p>
+                                    <p className="text-xs text-slate-400 mt-1">JPG, PNG, GIF, WEBP up to 50MB each</p>
+                                </>
+                            )}
+                        </div>
+                    )}
 
                     {/* Masonry grid */}
                     <div
