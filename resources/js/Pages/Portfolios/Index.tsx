@@ -57,47 +57,58 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {portfolios.map((portfolio) => (
-                                <div
-                                    key={portfolio.id}
-                                    className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all"
-                                >
-                                    <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
-                                        {portfolio.cover_photo_path ? (
-                                            <img
-                                                src={portfolio.cover_photo_path}
-                                                alt={portfolio.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                <span className="material-symbols-outlined text-4xl">collections</span>
+                            {portfolios.map((portfolio) => {
+                                const coverSrc = portfolio.cover_photo_path
+                                    ? (portfolio.cover_photo_path.startsWith('http') ? portfolio.cover_photo_path : `/storage/${portfolio.cover_photo_path}`)
+                                    : null;
+                                return (
+                                    <Link
+                                        key={portfolio.id}
+                                        href={`/portfolios/${portfolio.id}/edit`}
+                                        className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all block"
+                                    >
+                                        <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
+                                            {coverSrc ? (
+                                                <img
+                                                    src={coverSrc}
+                                                    alt={portfolio.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                    <span className="material-symbols-outlined text-4xl">collections</span>
+                                                </div>
+                                            )}
+                                            <div className="absolute top-3 right-3 flex gap-2">
+                                                <span className={`px-2 py-1 rounded-md text-xs font-bold ${
+                                                    portfolio.is_published
+                                                        ? 'bg-green-100 text-green-700'
+                                                        : 'bg-slate-100 text-slate-600'
+                                                }`}>
+                                                    {portfolio.is_published ? 'Published' : 'Draft'}
+                                                </span>
+                                                <span className="px-2 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary capitalize">
+                                                    {portfolio.category}
+                                                </span>
                                             </div>
-                                        )}
-                                        <div className="absolute top-3 right-3 flex gap-2">
-                                            <span className={`px-2 py-1 rounded-md text-xs font-bold ${
-                                                portfolio.is_published
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-slate-100 text-slate-600'
-                                            }`}>
-                                                {portfolio.is_published ? 'Published' : 'Draft'}
-                                            </span>
-                                            <span className="px-2 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary capitalize">
-                                                {portfolio.category}
-                                            </span>
                                         </div>
-                                    </div>
-                                    <div className="p-4">
-                                        <h3 className="font-bold text-lg">{portfolio.title}</h3>
-                                        {portfolio.description && (
-                                            <p className="text-sm text-slate-500 mt-1 line-clamp-2">{portfolio.description}</p>
-                                        )}
-                                        <p className="text-xs text-slate-400 mt-2">
-                                            {portfolio.portfolio_photos_count ?? 0} photos
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                                        <div className="p-4">
+                                            <h3 className="font-bold text-lg">{portfolio.title}</h3>
+                                            {portfolio.description && (
+                                                <p className="text-sm text-slate-500 mt-1 line-clamp-2">{portfolio.description}</p>
+                                            )}
+                                            <div className="flex items-center justify-between mt-2">
+                                                <p className="text-xs text-slate-400">
+                                                    {portfolio.portfolio_photos_count ?? 0} photos
+                                                </p>
+                                                <span className="text-xs text-primary font-medium">
+                                                    Edit & Upload Photos →
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     )}
 

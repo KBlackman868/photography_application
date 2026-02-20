@@ -54,6 +54,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Portfolios (admin management)
     Route::resource('portfolios', PortfolioController::class)->except(['show']);
+    Route::post('/portfolios/{portfolio}/photos', [PortfolioController::class, 'uploadPhotos'])->name('portfolios.photos.upload');
+    Route::delete('/portfolios/{portfolio}/photos/{photo}', [PortfolioController::class, 'deletePhoto'])->name('portfolios.photos.delete');
+    Route::post('/portfolios/{portfolio}/cover', [PortfolioController::class, 'setCover'])->name('portfolios.cover');
+    Route::patch('/portfolios/{portfolio}/photos/{photo}/caption', [PortfolioController::class, 'updatePhotoCaption'])->name('portfolios.photos.caption');
 
     // Bookings (admin)
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
