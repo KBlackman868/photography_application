@@ -168,6 +168,7 @@ export interface Portfolio {
 export interface PortfolioPhoto {
     id: number;
     photo_path: string;
+    display_path?: string;
     thumb_path?: string;
     caption?: string;
     sort_order: number;

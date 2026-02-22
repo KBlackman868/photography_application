@@ -13,6 +13,7 @@ class PortfolioPhoto extends Model
     protected $fillable = [
         'portfolio_id',
         'photo_path',
+        'display_path',
         'thumb_path',
         'caption',
         'sort_order',

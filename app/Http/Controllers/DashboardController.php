@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Gallery;
+use App\Models\Photo;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Spatie\Activitylog\Models\Activity;
 
 class DashboardController extends Controller
 {
@@ -45,6 +48,7 @@ class DashboardController extends Controller
 
         $stats = [
             'total_projects' => Project::where('studio_id', $studioId)->count(),
+            'total_photos' => Photo::whereHas('gallery', fn ($q) => $q->where('studio_id', $studioId))->count(),
             'active_galleries' => Gallery::where('studio_id', $studioId)->whereIn('status', ['published', 'review'])->count(),
             'pending_reviews' => Gallery::where('studio_id', $studioId)->where('status', 'review')->count(),
             'total_bookings' => Booking::where('studio_id', $studioId)->count(),
@@ -55,11 +59,43 @@ class DashboardController extends Controller
             'pending_inquiries' => Booking::where('studio_id', $studioId)->where('status', 'inquiry')->count(),
         ];
 
+        // Uploads per month (last 12 months)
+        $uploadsChart = Photo::whereHas('gallery', fn ($q) => $q->where('studio_id', $studioId))
+            ->where('created_at', '>=', now()->subMonths(12))
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        // Gallery status breakdown
+        $galleryStatuses = Gallery::where('studio_id', $studioId)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->get();
+
+        // Recent activity from Spatie activity log
+        $recentActivity = Activity::where('causer_id', '!=', null)
+            ->with('causer')
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(fn ($a) => [
+                'id' => $a->id,
+                'description' => $a->description,
+                'event' => $a->event,
+                'subject_type' => class_basename($a->subject_type ?? ''),
+                'causer_name' => $a->causer?->name ?? 'System',
+                'created_at' => $a->created_at->toISOString(),
+            ]);
+
         return Inertia::render('Dashboard', [
             'recentProjects' => $recentProjects,
             'recentBookings' => $recentBookings,
             'upcomingBookings' => $upcomingBookings,
             'stats' => $stats,
+            'uploadsChart' => $uploadsChart,
+            'galleryStatuses' => $galleryStatuses,
+            'recentActivity' => $recentActivity,
             'isAdmin' => true,
         ]);
     }

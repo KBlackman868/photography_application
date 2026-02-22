@@ -12,9 +12,9 @@ class WelcomeController extends Controller
     public function __invoke()
     {
         $portfolios = Portfolio::published()
-            ->with(['portfolioPhotos' => fn ($q) => $q->orderBy('sort_order')->limit(6)])
+            ->with(['portfolioPhotos' => fn ($q) => $q->orderBy('sort_order')->limit(9)])
             ->orderBy('sort_order')
-            ->limit(6)
+            ->limit(12)
             ->get()
             ->map(fn (Portfolio $p) => [
                 'id' => $p->id,
@@ -25,9 +25,14 @@ class WelcomeController extends Controller
                 'photos' => $p->portfolioPhotos->map(fn ($photo) => [
                     'id' => $photo->id,
                     'photo_path' => $photo->photo_path,
+                    'display_path' => $photo->display_path,
+                    'thumb_path' => $photo->thumb_path,
                     'caption' => $photo->caption,
                 ]),
             ]);
+
+        // Collect unique categories for the tab bar
+        $categories = $portfolios->pluck('category')->unique()->values()->toArray();
 
         $studio = Studio::first();
 
@@ -35,6 +40,7 @@ class WelcomeController extends Controller
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
             'portfolios' => $portfolios,
+            'categories' => $categories,
             'studio' => $studio ? [
                 'name' => $studio->name,
                 'description' => $studio->description,
