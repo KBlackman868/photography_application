@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { motion, useScroll, useTransform } from 'framer-motion';
 import { PageProps } from '@/types';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -28,36 +28,6 @@ interface WelcomeProps extends PageProps {
     portfolios: PortfolioData[];
     studio: StudioData | null;
 }
-
-/* ------------------------------------------------------------------ */
-/*  Animation variants                                                 */
-/* ------------------------------------------------------------------ */
-const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
-
-const fadeUp = {
-    hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
-};
-
-const fadeIn = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.8 } },
-};
-
-const staggerContainer = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.12 } },
-};
-
-const slideFromLeft = {
-    hidden: { opacity: 0, x: -60 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: EASE } },
-};
-
-const slideFromRight = {
-    hidden: { opacity: 0, x: 60 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: EASE } },
-};
 
 /* ------------------------------------------------------------------ */
 /*  Fallback data                                                      */
@@ -155,9 +125,15 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
-    const ctaRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({ target: ctaRef, offset: ['start end', 'end start'] });
-    const ctaY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
+    /* Scroll-reveal refs */
+    const portfolioHeaderRef = useScrollReveal(0.2);
+    const portfolioGridRef   = useScrollReveal(0.1);
+    const portfolioLinkRef   = useScrollReveal(0.15);
+    const aboutLeftRef       = useScrollReveal(0.2);
+    const aboutRightRef      = useScrollReveal(0.2);
+    const servicesHeaderRef  = useScrollReveal(0.2);
+    const servicesGridRef    = useScrollReveal(0.1);
+    const ctaContentRef      = useScrollReveal(0.2);
 
     /* Build gallery grid from portfolios or fallback */
     const galleryImages: { src: string; title: string; slug: string }[] = [];
@@ -201,9 +177,7 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
 
     return (
         <>
-            <Head title="Kyle Blackman Photography">
-                <style>{`html { scroll-behavior: smooth; }`}</style>
-            </Head>
+            <Head title="Kyle Blackman Photography" />
 
             {/* ============================== NAVBAR ============================== */}
             <header
@@ -262,7 +236,7 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
 
                 {/* Mobile menu */}
                 {mobileMenuOpen && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="md:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/5">
+                    <div className="md:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/5 animate-slide-down">
                         <div className="px-4 py-6 flex flex-col gap-1">
                             {['Portfolio', 'About', 'Services'].map((label) => (
                                 <a key={label} href={`#${label.toLowerCase()}`} onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-white/70 py-3 hover:text-accent transition-colors">{label}</a>
@@ -279,7 +253,7 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
                                 )}
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 )}
             </header>
 
@@ -294,53 +268,51 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
                     ))}
                     <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0f]/60 via-[#0a0a0f]/40 to-[#0a0a0f]" />
 
-                    <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-8 text-center">
-                        <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
-                            <motion.p variants={fadeIn} className="text-accent text-[11px] uppercase tracking-[0.35em] font-semibold mb-8">
-                                Kyle Blackman Photography
-                            </motion.p>
-                            <motion.h1 variants={fadeUp} className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-none mb-8">
-                                Capturing Moments<br /><span className="text-accent">That Matter</span>
-                            </motion.h1>
-                            <motion.p variants={fadeUp} className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
-                                Telling stories through light, emotion, and artistry.<br className="hidden sm:block" />
-                                Every frame is a memory preserved forever.
-                            </motion.p>
-                            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                <Link href="/portfolio" className="group rounded-full bg-accent text-background-dark px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-accent/90 transition-all duration-300 inline-flex items-center gap-3">
-                                    View Portfolio
-                                    <ArrowIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                </Link>
-                                <Link href="/book" className="rounded-full border border-white/20 text-white px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-white/10 hover:border-white/30 transition-all duration-300">
-                                    Book a Session
-                                </Link>
-                            </motion.div>
-                        </motion.div>
+                    <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-8 text-center hero-animate">
+                        <p className="text-accent text-[11px] uppercase tracking-[0.35em] font-semibold mb-8">
+                            Kyle Blackman Photography
+                        </p>
+                        <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-none mb-8">
+                            Capturing Moments<br /><span className="text-accent">That Matter</span>
+                        </h1>
+                        <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
+                            Telling stories through light, emotion, and artistry.<br className="hidden sm:block" />
+                            Every frame is a memory preserved forever.
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <Link href="/portfolio" className="group rounded-full bg-accent text-background-dark px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-accent/90 transition-all duration-300 inline-flex items-center gap-3">
+                                View Portfolio
+                                <ArrowIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                            <Link href="/book" className="rounded-full border border-white/20 text-white px-8 py-4 text-sm font-bold uppercase tracking-widest hover:bg-white/10 hover:border-white/30 transition-all duration-300">
+                                Book a Session
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Scroll indicator */}
                     <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
-                        <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }} className="flex flex-col items-center gap-3">
+                        <div className="animate-bounce-gentle flex flex-col items-center gap-3">
                             <span className="text-[10px] text-white/30 uppercase tracking-[0.3em]">Scroll</span>
                             <svg className="w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                             </svg>
-                        </motion.div>
+                        </div>
                     </div>
                 </section>
 
                 {/* =================== 2. PORTFOLIO PREVIEW =================== */}
                 <section id="portfolio" className="py-24 md:py-36 px-4 md:px-8 lg:px-16">
                     <div className="max-w-7xl mx-auto">
-                        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={staggerContainer} className="text-center mb-16 md:mb-20">
-                            <motion.div variants={fadeUp}><SectionLabel>Selected Work</SectionLabel></motion.div>
-                            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none mb-6">Featured Portfolio</motion.h2>
-                            <motion.p variants={fadeUp} className="text-white/40 text-lg max-w-xl mx-auto font-light">A curated selection of moments I've had the privilege of capturing.</motion.p>
-                        </motion.div>
+                        <div ref={portfolioHeaderRef} className="stagger-children text-center mb-16 md:mb-20">
+                            <div className="fade-up"><SectionLabel>Selected Work</SectionLabel></div>
+                            <h2 className="fade-up font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none mb-6">Featured Portfolio</h2>
+                            <p className="fade-up text-white/40 text-lg max-w-xl mx-auto font-light">A curated selection of moments I've had the privilege of capturing.</p>
+                        </div>
 
-                        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={staggerContainer} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div ref={portfolioGridRef} className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {galleryImages.map((img, idx) => (
-                                <motion.div key={idx} variants={fadeUp}>
+                                <div key={idx} className="fade-up">
                                     <a href={img.slug ? `/portfolio/${img.slug}` : '/portfolio'} className="group relative block aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer">
                                         <img src={img.src} alt={img.title} className="w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 group-hover:-translate-y-2 group-hover:rotate-[0.5deg]" loading="lazy" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
@@ -351,16 +323,16 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
                                         </div>
                                         <div className="absolute inset-0 rounded-2xl shadow-[0_20px_60px_-15px_rgba(212,175,55,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                                     </a>
-                                </motion.div>
+                                </div>
                             ))}
-                        </motion.div>
+                        </div>
 
-                        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mt-14">
+                        <div ref={portfolioLinkRef} className="fade-up text-center mt-14">
                             <Link href="/portfolio" className="group inline-flex items-center gap-3 text-accent text-sm font-semibold uppercase tracking-[0.2em] hover:gap-4 transition-all duration-300">
                                 View All Work
                                 <ArrowIcon />
                             </Link>
-                        </motion.div>
+                        </div>
                     </div>
                 </section>
 
@@ -368,7 +340,7 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
                 <section id="about" className="py-24 md:py-36 px-4 md:px-8 lg:px-16">
                     <div className="max-w-7xl mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-                            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={slideFromLeft} className="relative">
+                            <div ref={aboutLeftRef} className="slide-left relative">
                                 <div className="relative">
                                     <div className="absolute -inset-4 md:-inset-6 border border-accent/20 rounded-3xl -rotate-2" />
                                     <div className="absolute -inset-2 md:-inset-3 border border-accent/10 rounded-2xl rotate-1" />
@@ -385,9 +357,9 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
                                         <p className="text-[10px] uppercase tracking-widest font-semibold mt-1">Years</p>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </div>
 
-                            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={slideFromRight}>
+                            <div ref={aboutRightRef} className="slide-right">
                                 <SectionLabel>Meet the Photographer</SectionLabel>
                                 <h2 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight leading-none mb-8">
                                     Hi, I'm <span className="text-accent">Kyle Blackman</span>
@@ -402,7 +374,7 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
                                     Let's Work Together
                                     <ArrowIcon />
                                 </Link>
-                            </motion.div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -410,42 +382,42 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
                 {/* ==================== 4. SERVICES ==================== */}
                 <section id="services" className="py-24 md:py-36 px-4 md:px-8 lg:px-16 bg-white/[0.02]">
                     <div className="max-w-7xl mx-auto">
-                        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={staggerContainer} className="text-center mb-16 md:mb-20">
-                            <motion.div variants={fadeUp}><SectionLabel>What I Offer</SectionLabel></motion.div>
-                            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none mb-6">Services</motion.h2>
-                            <motion.p variants={fadeUp} className="text-white/40 text-lg max-w-xl mx-auto font-light">Every session is tailored to you. From consultation to delivery, I'm dedicated to creating images you'll treasure.</motion.p>
-                        </motion.div>
+                        <div ref={servicesHeaderRef} className="stagger-children text-center mb-16 md:mb-20">
+                            <div className="fade-up"><SectionLabel>What I Offer</SectionLabel></div>
+                            <h2 className="fade-up font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none mb-6">Services</h2>
+                            <p className="fade-up text-white/40 text-lg max-w-xl mx-auto font-light">Every session is tailored to you. From consultation to delivery, I'm dedicated to creating images you'll treasure.</p>
+                        </div>
 
-                        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={staggerContainer} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div ref={servicesGridRef} className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             {SERVICES.map((service) => (
-                                <motion.div key={service.title} variants={fadeUp} className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 hover:border-accent/20 hover:bg-accent/[0.03] transition-all duration-500">
+                                <div key={service.title} className="fade-up group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 hover:border-accent/20 hover:bg-accent/[0.03] transition-all duration-500">
                                     <div className="text-accent/70 mb-6 group-hover:text-accent transition-colors duration-500">{service.icon}</div>
                                     <h3 className="font-display text-xl font-bold mb-3 tracking-tight">{service.title}</h3>
                                     <p className="text-white/40 text-sm leading-relaxed font-light">{service.description}</p>
-                                </motion.div>
+                                </div>
                             ))}
-                        </motion.div>
+                        </div>
                     </div>
                 </section>
 
                 {/* ================== 5. CTA / BOOKING ================== */}
-                <section className="relative py-32 md:py-44 px-4 md:px-8 lg:px-16 overflow-hidden" ref={ctaRef}>
-                    <motion.div className="absolute inset-0" style={{ y: ctaY }}>
-                        <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80" alt="" className="w-full h-[120%] object-cover" loading="lazy" />
-                    </motion.div>
+                <section className="relative py-32 md:py-44 px-4 md:px-8 lg:px-16 overflow-hidden">
+                    <div className="absolute inset-0">
+                        <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80" alt="" className="w-full h-full object-cover" loading="lazy" />
+                    </div>
                     <div className="absolute inset-0 bg-primary/80" />
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/60" />
 
                     <div className="relative z-10 max-w-4xl mx-auto text-center">
-                        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={staggerContainer}>
-                            <motion.div variants={fadeUp}><SectionLabel>Let's Create</SectionLabel></motion.div>
-                            <motion.h2 variants={fadeUp} className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none mb-8">
+                        <div ref={ctaContentRef} className="stagger-children">
+                            <div className="fade-up"><SectionLabel>Let's Create</SectionLabel></div>
+                            <h2 className="fade-up font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none mb-8">
                                 Ready to create<br />something <span className="text-accent">beautiful</span>?
-                            </motion.h2>
-                            <motion.p variants={fadeUp} className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed">
+                            </h2>
+                            <p className="fade-up text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed">
                                 Every great photograph starts with a conversation. Tell me about your vision and let's bring it to life together.
-                            </motion.p>
-                            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            </p>
+                            <div className="fade-up flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <Link href="/book" className="group rounded-full bg-accent text-background-dark px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-accent/90 transition-all duration-300 inline-flex items-center gap-3 shadow-lg shadow-accent/25">
                                     Book Now
                                     <ArrowIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -456,8 +428,8 @@ export default function Welcome({ auth, canLogin, canRegister, portfolios = [], 
                                 >
                                     Send an Inquiry
                                 </a>
-                            </motion.div>
-                        </motion.div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </main>

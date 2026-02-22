@@ -1,3 +1,95 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─── Smooth scrolling ─── */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ─── Scroll-reveal base states (hidden) ─── */
+.fade-up,
+.fade-in,
+.slide-left,
+.slide-right {
+    opacity: 0;
+    transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-up {
+    transform: translateY(30px);
+}
+.slide-left {
+    transform: translateX(-60px);
+}
+.slide-right {
+    transform: translateX(60px);
+}
+
+/* ─── Visible state (element itself or parent has .visible) ─── */
+.visible.fade-up,
+.visible.fade-in,
+.visible.slide-left,
+.visible.slide-right,
+.visible > .fade-up,
+.visible > .fade-in,
+.visible > .slide-left,
+.visible > .slide-right {
+    opacity: 1;
+    transform: translate(0, 0);
+}
+
+/* ─── Stagger children ─── */
+.stagger-children > :nth-child(1) { transition-delay: 0ms; }
+.stagger-children > :nth-child(2) { transition-delay: 100ms; }
+.stagger-children > :nth-child(3) { transition-delay: 200ms; }
+.stagger-children > :nth-child(4) { transition-delay: 300ms; }
+.stagger-children > :nth-child(5) { transition-delay: 400ms; }
+.stagger-children > :nth-child(6) { transition-delay: 500ms; }
+
+/* ─── Hero on-load keyframe animations ─── */
+@keyframes heroFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes heroFadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-animate > * {
+    opacity: 0;
+}
+.hero-animate > :nth-child(1) {
+    animation: heroFadeIn 0.8s ease 0.1s forwards;
+}
+.hero-animate > :nth-child(2) {
+    animation: heroFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+.hero-animate > :nth-child(3) {
+    animation: heroFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+}
+.hero-animate > :nth-child(4) {
+    animation: heroFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+
+/* ─── Mobile menu slide-down ─── */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-down {
+    animation: slideDown 0.3s ease-out forwards;
+}
+
+/* ─── Scroll indicator bounce ─── */
+@keyframes bounceGentle {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(8px); }
+}
+
+.animate-bounce-gentle {
+    animation: bounceGentle 2s ease-in-out infinite;
+}
