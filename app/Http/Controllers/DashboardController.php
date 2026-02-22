@@ -60,9 +60,14 @@ class DashboardController extends Controller
         ];
 
         // Uploads per month (last 12 months)
+        $driver = DB::getDriverName();
+        $monthExpr = $driver === 'sqlite'
+            ? "strftime('%Y-%m', created_at) as month"
+            : "DATE_FORMAT(created_at, '%Y-%m') as month";
+
         $uploadsChart = Photo::whereHas('gallery', fn ($q) => $q->where('studio_id', $studioId))
             ->where('created_at', '>=', now()->subMonths(12))
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
+            ->selectRaw("$monthExpr, COUNT(*) as count")
             ->groupBy('month')
             ->orderBy('month')
             ->get();
