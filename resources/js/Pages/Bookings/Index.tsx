@@ -21,12 +21,12 @@ interface Props extends PageProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-    inquiry: 'bg-amber-100 text-amber-700',
-    quoted: 'bg-blue-100 text-blue-700',
-    confirmed: 'bg-green-100 text-green-700',
-    deposit_paid: 'bg-emerald-100 text-emerald-700',
-    completed: 'bg-slate-100 text-slate-600',
-    cancelled: 'bg-red-100 text-red-600',
+    inquiry: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    quoted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    confirmed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    deposit_paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    completed: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    cancelled: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
 };
 
 const STATUSES = ['inquiry', 'quoted', 'confirmed', 'deposit_paid', 'completed', 'cancelled'];
@@ -74,7 +74,7 @@ export default function BookingsIndex({ bookings }: Props) {
                         <button
                             onClick={() => setFilter('all')}
                             className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                                filter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                filter === 'all' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
                             }`}
                         >
                             All ({bookings.length})
@@ -86,7 +86,7 @@ export default function BookingsIndex({ bookings }: Props) {
                                     key={s}
                                     onClick={() => setFilter(s)}
                                     className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors capitalize whitespace-nowrap ${
-                                        filter === s ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        filter === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
                                     }`}
                                 >
                                     {s.replace('_', ' ')} ({count})
@@ -144,7 +144,7 @@ export default function BookingsIndex({ bookings }: Props) {
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <span className="text-sm text-slate-600">{booking.location || '-'}</span>
+                                                    <span className="text-sm text-slate-600 dark:text-slate-400">{booking.location || '-'}</span>
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${STATUS_COLORS[booking.status] || 'bg-slate-100'}`}>
@@ -170,7 +170,7 @@ export default function BookingsIndex({ bookings }: Props) {
                     {/* Booking detail/manage modal */}
                     {selectedBooking && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setSelectedBooking(null)}>
-                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-bold">
                                         {extractFromNotes(selectedBooking.notes, 'Name') || `Booking #${selectedBooking.id}`}
@@ -216,14 +216,14 @@ export default function BookingsIndex({ bookings }: Props) {
                                         </div>
                                     </div>
                                     {extractFromNotes(selectedBooking.notes, 'Message') !== 'N/A' && extractFromNotes(selectedBooking.notes, 'Message') && (
-                                        <div className="border-t border-slate-100 pt-3">
+                                        <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
                                             <p className="text-slate-500 text-xs mb-1">Client Message</p>
-                                            <p className="text-sm bg-slate-50 p-3 rounded-lg">{extractFromNotes(selectedBooking.notes, 'Message')}</p>
+                                            <p className="text-sm bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">{extractFromNotes(selectedBooking.notes, 'Message')}</p>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="border-t border-slate-100 pt-4">
+                                <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
                                     <p className="text-xs font-semibold text-slate-500 uppercase mb-3">Update Status</p>
                                     <div className="flex flex-wrap gap-2">
                                         {STATUSES.map((s) => (
@@ -233,8 +233,8 @@ export default function BookingsIndex({ bookings }: Props) {
                                                 disabled={selectedBooking.status === s}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${
                                                     selectedBooking.status === s
-                                                        ? 'bg-slate-900 text-white cursor-default'
-                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 cursor-default'
+                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
                                                 }`}
                                             >
                                                 {s.replace('_', ' ')}

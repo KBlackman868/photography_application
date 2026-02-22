@@ -86,7 +86,7 @@ export default function ClientsIndex({ auth, clients }: Props) {
                                                 <p className="text-sm">{client.email}</p>
                                                 {client.phone && <p className="text-xs text-slate-400">{client.phone}</p>}
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-slate-600">
+                                            <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                                                 {client.client_profile?.company || '—'}
                                             </td>
                                             <td className="px-4 py-3 text-sm">
@@ -115,21 +115,21 @@ export default function ClientsIndex({ auth, clients }: Props) {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Name</label>
-                                        <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+                                        <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                                         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Email</label>
-                                        <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+                                        <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                                         {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Phone</label>
-                                        <input type="text" value={data.phone} onChange={(e) => setData('phone', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+                                        <input type="text" value={data.phone} onChange={(e) => setData('phone', e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Company</label>
-                                        <input type="text" value={data.company} onChange={(e) => setData('company', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+                                        <input type="text" value={data.company} onChange={(e) => setData('company', e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Notes</label>
@@ -137,7 +137,7 @@ export default function ClientsIndex({ auth, clients }: Props) {
                                     </div>
                                 </div>
                                 <div className="flex gap-3 mt-6">
-                                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-2.5 bg-slate-100 rounded-xl text-sm font-medium hover:bg-slate-200">Cancel</button>
+                                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 dark:text-slate-200 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600">Cancel</button>
                                     <button type="submit" disabled={processing} className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:brightness-110 disabled:opacity-50">Add Client</button>
                                 </div>
                             </form>

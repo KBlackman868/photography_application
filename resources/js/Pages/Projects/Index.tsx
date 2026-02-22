@@ -75,12 +75,12 @@ export default function ProjectsIndex({ auth, projects }: Props) {
                                             <td className="px-4 py-3">
                                                 <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${
                                                     {
-                                                        inquiry: 'bg-slate-100 text-slate-600',
-                                                        booked: 'bg-blue-100 text-blue-700',
-                                                        in_progress: 'bg-amber-100 text-amber-700',
-                                                        delivered: 'bg-green-100 text-green-700',
-                                                        completed: 'bg-green-100 text-green-700',
-                                                        archived: 'bg-slate-100 text-slate-500',
+                                                        inquiry: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+                                                        booked: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                                                        in_progress: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                                                        delivered: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                                                        completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                                                        archived: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-500',
                                                     }[project.status] || 'bg-slate-100 text-slate-600'
                                                 }`}>
                                                     {project.status.replace('_', ' ')}
@@ -104,12 +104,12 @@ export default function ProjectsIndex({ auth, projects }: Props) {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Name</label>
-                                        <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+                                        <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                                         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Type</label>
-                                        <select value={data.type} onChange={(e) => setData('type', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+                                        <select value={data.type} onChange={(e) => setData('type', e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary">
                                             {['wedding', 'portrait', 'event', 'commercial', 'newborn', 'engagement', 'other'].map((t) => (
                                                 <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                                             ))}
@@ -117,15 +117,15 @@ export default function ProjectsIndex({ auth, projects }: Props) {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Shoot Date</label>
-                                        <input type="date" value={data.shoot_date} onChange={(e) => setData('shoot_date', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+                                        <input type="date" value={data.shoot_date} onChange={(e) => setData('shoot_date', e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Location</label>
-                                        <input type="text" value={data.location} onChange={(e) => setData('location', e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
+                                        <input type="text" value={data.location} onChange={(e) => setData('location', e.target.value)} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary" />
                                     </div>
                                 </div>
                                 <div className="flex gap-3 mt-6">
-                                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-2.5 bg-slate-100 rounded-xl text-sm font-medium hover:bg-slate-200">Cancel</button>
+                                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 dark:text-slate-200 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600">Cancel</button>
                                     <button type="submit" disabled={processing} className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:brightness-110 disabled:opacity-50">Create</button>
                                 </div>
                             </form>

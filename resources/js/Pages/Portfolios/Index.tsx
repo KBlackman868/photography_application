@@ -127,7 +127,7 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                                             type="text"
                                             value={data.title}
                                             onChange={(e) => setData('title', e.target.value)}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary"
+                                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary"
                                         />
                                         {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
                                     </div>
@@ -136,7 +136,7 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                                         <select
                                             value={data.category}
                                             onChange={(e) => setData('category', e.target.value)}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary"
+                                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm focus:ring-2 focus:ring-primary"
                                         >
                                             {['wedding', 'portrait', 'event', 'commercial', 'newborn', 'landscape', 'other'].map((c) => (
                                                 <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
@@ -166,7 +166,7 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                                     <button
                                         type="button"
                                         onClick={() => setShowCreate(false)}
-                                        className="flex-1 py-2.5 bg-slate-100 rounded-xl text-sm font-medium hover:bg-slate-200"
+                                        className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 dark:text-slate-200 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600"
                                     >
                                         Cancel
                                     </button>

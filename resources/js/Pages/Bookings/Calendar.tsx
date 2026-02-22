@@ -98,11 +98,11 @@ export default function BookingCalendar({ bookings }: Props) {
                 <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold tracking-tight">Calendar</h2>
                     <div className="flex items-center gap-3">
-                        <div className="flex bg-slate-100 rounded-lg p-0.5">
+                        <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
                             <button
                                 onClick={() => setView('month')}
                                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                    view === 'month' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'
+                                    view === 'month' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'
                                 }`}
                             >
                                 Month
@@ -110,7 +110,7 @@ export default function BookingCalendar({ bookings }: Props) {
                             <button
                                 onClick={() => setView('week')}
                                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                    view === 'week' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'
+                                    view === 'week' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500'
                                 }`}
                             >
                                 Week
@@ -118,7 +118,7 @@ export default function BookingCalendar({ bookings }: Props) {
                         </div>
                         <Link
                             href="/bookings"
-                            className="px-4 py-2 bg-slate-100 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
+                            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                         >
                             List View
                         </Link>
@@ -135,7 +135,7 @@ export default function BookingCalendar({ bookings }: Props) {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={view === 'month' ? prevMonth : prevWeek}
-                                className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
                                 <span className="material-symbols-outlined text-slate-600">chevron_left</span>
                             </button>
@@ -147,7 +147,7 @@ export default function BookingCalendar({ bookings }: Props) {
                             </h3>
                             <button
                                 onClick={view === 'month' ? nextMonth : nextWeek}
-                                className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
                                 <span className="material-symbols-outlined text-slate-600">chevron_right</span>
                             </button>
@@ -162,17 +162,17 @@ export default function BookingCalendar({ bookings }: Props) {
 
                     {/* Month View */}
                     {view === 'month' && (
-                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                            <div className="grid grid-cols-7 border-b border-slate-200">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800">
                                 {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d) => (
-                                    <div key={d} className="px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center border-r last:border-r-0 border-slate-100">
+                                    <div key={d} className="px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center border-r last:border-r-0 border-slate-100 dark:border-slate-800">
                                         {d}
                                     </div>
                                 ))}
                             </div>
                             <div className="grid grid-cols-7">
                                 {Array.from({ length: firstDay }).map((_, i) => (
-                                    <div key={`e-${i}`} className="min-h-[120px] border-r border-b border-slate-100 bg-slate-50/50" />
+                                    <div key={`e-${i}`} className="min-h-[120px] border-r border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30" />
                                 ))}
                                 {Array.from({ length: daysInMonth }).map((_, i) => {
                                     const day = i + 1;
@@ -181,9 +181,9 @@ export default function BookingCalendar({ bookings }: Props) {
                                     const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
 
                                     return (
-                                        <div key={day} className="min-h-[120px] border-r border-b border-slate-100 p-2">
+                                        <div key={day} className="min-h-[120px] border-r border-b border-slate-100 dark:border-slate-800 p-2">
                                             <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full ${
-                                                isToday ? 'bg-primary text-white' : 'text-slate-700'
+                                                isToday ? 'bg-primary text-white' : 'text-slate-700 dark:text-slate-300'
                                             }`}>
                                                 {day}
                                             </div>
@@ -212,20 +212,20 @@ export default function BookingCalendar({ bookings }: Props) {
 
                     {/* Week View with time grid */}
                     {view === 'week' && (
-                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                             {/* Header */}
-                            <div className="grid grid-cols-8 border-b border-slate-200">
-                                <div className="px-2 py-3 text-xs font-semibold text-slate-400 text-center border-r border-slate-100">
+                            <div className="grid grid-cols-8 border-b border-slate-200 dark:border-slate-800">
+                                <div className="px-2 py-3 text-xs font-semibold text-slate-400 text-center border-r border-slate-100 dark:border-slate-800">
                                     Time
                                 </div>
                                 {weekDays.map((d) => {
                                     const isToday = d.toDateString() === today.toDateString();
                                     return (
-                                        <div key={d.toISOString()} className={`px-2 py-3 text-center border-r last:border-r-0 border-slate-100 ${isToday ? 'bg-primary/5' : ''}`}>
+                                        <div key={d.toISOString()} className={`px-2 py-3 text-center border-r last:border-r-0 border-slate-100 dark:border-slate-800 ${isToday ? 'bg-primary/5' : ''}`}>
                                             <div className="text-[10px] font-medium text-slate-400 uppercase">
                                                 {d.toLocaleDateString('en-US', { weekday: 'short' })}
                                             </div>
-                                            <div className={`text-lg font-bold ${isToday ? 'text-primary' : 'text-slate-900'}`}>
+                                            <div className={`text-lg font-bold ${isToday ? 'text-primary' : 'text-slate-900 dark:text-white'}`}>
                                                 {d.getDate()}
                                             </div>
                                         </div>
@@ -235,8 +235,8 @@ export default function BookingCalendar({ bookings }: Props) {
                             {/* Time grid */}
                             <div className="overflow-y-auto max-h-[600px]">
                                 {HOURS.map((hour) => (
-                                    <div key={hour} className="grid grid-cols-8 border-b border-slate-50">
-                                        <div className="px-2 py-4 text-xs text-slate-400 text-right pr-3 border-r border-slate-100">
+                                    <div key={hour} className="grid grid-cols-8 border-b border-slate-50 dark:border-slate-800">
+                                        <div className="px-2 py-4 text-xs text-slate-400 text-right pr-3 border-r border-slate-100 dark:border-slate-800">
                                             {hour > 12 ? `${hour - 12} PM` : hour === 12 ? '12 PM' : `${hour} AM`}
                                         </div>
                                         {weekDays.map((d) => {
@@ -249,7 +249,7 @@ export default function BookingCalendar({ bookings }: Props) {
                                             const isToday = d.toDateString() === today.toDateString();
 
                                             return (
-                                                <div key={d.toISOString()} className={`px-1 py-1 border-r last:border-r-0 border-slate-50 min-h-[60px] ${isToday ? 'bg-primary/5' : ''}`}>
+                                                <div key={d.toISOString()} className={`px-1 py-1 border-r last:border-r-0 border-slate-50 dark:border-slate-800 min-h-[60px] ${isToday ? 'bg-primary/5' : ''}`}>
                                                     {events.map((event) => (
                                                         <button
                                                             key={event.id}
@@ -275,7 +275,7 @@ export default function BookingCalendar({ bookings }: Props) {
                         {Object.entries(STATUS_COLORS).map(([status, colors]) => (
                             <div key={status} className="flex items-center gap-1.5">
                                 <span className={`w-3 h-3 rounded border ${colors}`} />
-                                <span className="capitalize text-slate-600">{status.replace('_', ' ')}</span>
+                                <span className="capitalize text-slate-600 dark:text-slate-400">{status.replace('_', ' ')}</span>
                             </div>
                         ))}
                     </div>
@@ -283,9 +283,9 @@ export default function BookingCalendar({ bookings }: Props) {
                     {/* Event detail modal */}
                     {selectedEvent && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setSelectedEvent(null)}>
-                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-bold">{selectedEvent.title}</h3>
+                                    <h3 className="text-lg font-bold dark:text-white">{selectedEvent.title}</h3>
                                     <button onClick={() => setSelectedEvent(null)} className="text-slate-400 hover:text-slate-600">
                                         <span className="material-symbols-outlined">close</span>
                                     </button>
@@ -313,13 +313,13 @@ export default function BookingCalendar({ bookings }: Props) {
                                     </div>
                                     {selectedEvent.notes && (
                                         <>
-                                            <div className="border-t border-slate-100 pt-3">
+                                            <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
                                                 <p className="text-slate-500 mb-1">Contact Info</p>
                                                 <p className="text-sm">{extractFromNotes(selectedEvent.notes, 'Email')}</p>
                                                 <p className="text-sm">{extractFromNotes(selectedEvent.notes, 'Phone')}</p>
                                             </div>
                                             {extractFromNotes(selectedEvent.notes, 'Message') !== 'N/A' && extractFromNotes(selectedEvent.notes, 'Message') && (
-                                                <div className="border-t border-slate-100 pt-3">
+                                                <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
                                                     <p className="text-slate-500 mb-1">Message</p>
                                                     <p className="text-sm">{extractFromNotes(selectedEvent.notes, 'Message')}</p>
                                                 </div>
@@ -336,7 +336,7 @@ export default function BookingCalendar({ bookings }: Props) {
                                     </Link>
                                     <button
                                         onClick={() => setSelectedEvent(null)}
-                                        className="flex-1 py-2.5 bg-slate-100 rounded-xl text-sm font-medium hover:bg-slate-200"
+                                        className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 dark:text-slate-200 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600"
                                     >
                                         Close
                                     </button>

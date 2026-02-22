@@ -53,7 +53,7 @@ export default function ClientShow({ auth, client }: Props) {
                                     {client.client_profile.notes && (
                                         <div>
                                             <span className="text-xs text-slate-500 uppercase tracking-wider font-bold">Notes</span>
-                                            <p className="text-slate-600">{client.client_profile.notes}</p>
+                                            <p className="text-slate-600 dark:text-slate-400">{client.client_profile.notes}</p>
                                         </div>
                                     )}
                                 </div>
@@ -67,7 +67,7 @@ export default function ClientShow({ auth, client }: Props) {
                                 {client.projects && client.projects.length > 0 ? (
                                     <div className="space-y-3">
                                         {client.projects.map((project: any) => (
-                                            <div key={project.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                                            <div key={project.id} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
                                                 <div>
                                                     <p className="font-semibold">{project.name}</p>
                                                     <p className="text-xs text-slate-500 capitalize">{project.type} &middot; {project.status.replace('_', ' ')}</p>
@@ -96,7 +96,7 @@ export default function ClientShow({ auth, client }: Props) {
                                     <h3 className="font-bold mb-4">Invoices</h3>
                                     <div className="space-y-2">
                                         {client.invoices.map((invoice: any) => (
-                                            <div key={invoice.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                                            <div key={invoice.id} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
                                                 <div>
                                                     <p className="font-semibold text-sm">{invoice.invoice_number}</p>
                                                     <p className="text-xs text-slate-500 capitalize">{invoice.status}</p>
