@@ -14,13 +14,14 @@ export default {
     theme: {
         extend: {
             colors: {
-                primary: '#197fe6',
+                primary: '#1e3a8a',
+                accent: '#d4af37',
                 'background-light': '#f6f7f8',
-                'background-dark': '#111921',
+                'background-dark': '#0a0a0f',
             },
             fontFamily: {
-                display: ['Spline Sans', ...defaultTheme.fontFamily.sans],
-                sans: ['Spline Sans', ...defaultTheme.fontFamily.sans],
+                display: ['Syne', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
             },
             borderRadius: {
                 DEFAULT: '0.25rem',
