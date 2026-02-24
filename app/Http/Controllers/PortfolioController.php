@@ -4,33 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Models\Portfolio;
 use App\Models\PortfolioPhoto;
-use App\Services\ImageService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class PortfolioController extends Controller
 {
-    /**
-     * Public portfolio page - grouped by category
-     */
     public function publicIndex()
     {
         $portfolios = Portfolio::published()
             ->withCount('portfolioPhotos')
-            ->with('portfolioPhotos')
+            ->with(['portfolioPhotos.media'])
             ->orderBy('sort_order')
-            ->get();
+            ->get()
+            ->each(function (Portfolio $p) {
+                $p->portfolioPhotos->each(function (PortfolioPhoto $photo) {
+                    $photo->append(['display_url', 'thumb_url', 'original_url']);
+                });
+            });
 
         return Inertia::render('Portfolios/Public', [
             'portfolios' => $portfolios,
         ]);
     }
 
-    /**
-     * Admin portfolio management
-     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -47,7 +44,10 @@ class PortfolioController extends Controller
 
     public function show(Portfolio $portfolio)
     {
-        $portfolio->load('portfolioPhotos');
+        $portfolio->load(['portfolioPhotos.media']);
+        $portfolio->portfolioPhotos->each(function (PortfolioPhoto $photo) {
+            $photo->append(['display_url', 'thumb_url', 'original_url']);
+        });
 
         return Inertia::render('Portfolios/Show', [
             'portfolio' => $portfolio,
@@ -74,39 +74,39 @@ class PortfolioController extends Controller
 
     public function edit(Portfolio $portfolio)
     {
-        $portfolio->load(['portfolioPhotos' => fn ($q) => $q->orderBy('sort_order')]);
+        $portfolio->load(['portfolioPhotos' => fn ($q) => $q->orderBy('sort_order'), 'portfolioPhotos.media']);
+        $portfolio->portfolioPhotos->each(function (PortfolioPhoto $photo) {
+            $photo->append(['display_url', 'thumb_url', 'original_url']);
+        });
 
         return Inertia::render('Portfolios/Edit', [
             'portfolio' => $portfolio,
         ]);
     }
 
-    public function uploadPhotos(Request $request, Portfolio $portfolio, ImageService $imageService)
+    public function uploadPhotos(Request $request, Portfolio $portfolio)
     {
         $request->validate([
             'photos' => 'required|array|min:1',
-            'photos.*' => 'required|image|max:51200', // 50MB max
+            'photos.*' => 'required|image|max:51200',
         ]);
 
         $maxOrder = $portfolio->portfolioPhotos()->max('sort_order') ?? 0;
 
         foreach ($request->file('photos') as $file) {
-            $paths = $imageService->process($file, "portfolios/{$portfolio->id}");
-
-            PortfolioPhoto::create([
+            $photo = PortfolioPhoto::create([
                 'portfolio_id' => $portfolio->id,
-                'photo_path' => $paths['original_path'],
-                'display_path' => $paths['display_path'],
-                'thumb_path' => $paths['thumb_path'],
                 'sort_order' => ++$maxOrder,
             ]);
+
+            $photo->addMedia($file)->toMediaCollection('photo');
         }
 
         // Set cover photo if none exists
-        if (!$portfolio->cover_photo_path) {
-            $first = $portfolio->portfolioPhotos()->orderBy('sort_order')->first();
+        if (! $portfolio->cover_photo_path) {
+            $first = $portfolio->portfolioPhotos()->with('media')->orderBy('sort_order')->first();
             if ($first) {
-                $portfolio->update(['cover_photo_path' => $first->thumb_path ?? $first->photo_path]);
+                $portfolio->update(['cover_photo_path' => $first->thumb_url]);
             }
         }
 
@@ -115,19 +115,12 @@ class PortfolioController extends Controller
 
     public function deletePhoto(Portfolio $portfolio, PortfolioPhoto $photo)
     {
-        foreach (['photo_path', 'display_path', 'thumb_path'] as $field) {
-            if ($photo->$field && Storage::disk('public')->exists($photo->$field)) {
-                Storage::disk('public')->delete($photo->$field);
-            }
-        }
-
+        $photo->clearMediaCollection('photo');
         $photo->delete();
 
         // Update cover if deleted photo was the cover
-        if ($portfolio->cover_photo_path === $photo->photo_path) {
-            $next = $portfolio->portfolioPhotos()->orderBy('sort_order')->first();
-            $portfolio->update(['cover_photo_path' => $next?->photo_path]);
-        }
+        $next = $portfolio->portfolioPhotos()->with('media')->orderBy('sort_order')->first();
+        $portfolio->update(['cover_photo_path' => $next?->thumb_url]);
 
         return back()->with('success', 'Photo deleted.');
     }
@@ -136,8 +129,8 @@ class PortfolioController extends Controller
     {
         $request->validate(['photo_id' => 'required|exists:portfolio_photos,id']);
 
-        $photo = PortfolioPhoto::findOrFail($request->photo_id);
-        $portfolio->update(['cover_photo_path' => $photo->photo_path]);
+        $photo = PortfolioPhoto::with('media')->findOrFail($request->photo_id);
+        $portfolio->update(['cover_photo_path' => $photo->thumb_url ?? $photo->original_url]);
 
         return back()->with('success', 'Cover photo updated.');
     }
@@ -167,6 +160,8 @@ class PortfolioController extends Controller
 
     public function destroy(Portfolio $portfolio)
     {
+        // Spatie will clean up media when models are deleted
+        $portfolio->portfolioPhotos->each(fn ($photo) => $photo->clearMediaCollection('photo'));
         $portfolio->delete();
 
         return redirect()->route('portfolios.index')->with('success', 'Portfolio deleted.');

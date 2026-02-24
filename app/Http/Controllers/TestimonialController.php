@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Testimonial;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class TestimonialController extends Controller
@@ -14,9 +13,14 @@ class TestimonialController extends Controller
         $studio = $request->user()->studio;
 
         $testimonials = $studio->testimonials()
+            ->with('media')
             ->orderBy('sort_order')
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->map(fn (Testimonial $t) => [
+                ...$t->toArray(),
+                'photo_url' => $t->photo_url,
+            ]);
 
         return Inertia::render('Testimonials/Index', [
             'testimonials' => $testimonials,
@@ -63,10 +67,7 @@ class TestimonialController extends Controller
 
     public function destroy(Testimonial $testimonial)
     {
-        if ($testimonial->photo_path) {
-            Storage::disk('public')->delete($testimonial->photo_path);
-        }
-
+        $testimonial->clearMediaCollection('photo');
         $testimonial->delete();
 
         return back()->with('success', 'Testimonial deleted.');
@@ -78,12 +79,7 @@ class TestimonialController extends Controller
             'photo' => 'required|image|max:5120',
         ]);
 
-        if ($testimonial->photo_path) {
-            Storage::disk('public')->delete($testimonial->photo_path);
-        }
-
-        $path = $request->file('photo')->store('testimonials', 'public');
-        $testimonial->update(['photo_path' => $path]);
+        $testimonial->addMediaFromRequest('photo')->toMediaCollection('photo');
 
         return back()->with('success', 'Photo uploaded.');
     }

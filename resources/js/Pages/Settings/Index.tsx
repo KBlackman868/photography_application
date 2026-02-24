@@ -13,8 +13,22 @@ interface PackageData {
     is_active: boolean;
 }
 
+interface HeroMedia {
+    id: number;
+    url: string;
+    display_url: string;
+    thumb_url: string;
+}
+
+interface StudioWithMedia extends Studio {
+    logo_url?: string;
+    photographer_photo_url?: string;
+    hero_image_urls?: string[];
+    hero_media?: HeroMedia[];
+}
+
 interface Props extends PageProps {
-    studio: Studio | null;
+    studio: StudioWithMedia | null;
     packages: PackageData[];
 }
 
@@ -111,8 +125,8 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
         });
     };
 
-    const handleDeleteHeroImage = (index: number) => {
-        router.delete('/settings/hero-images', { data: { index } });
+    const handleDeleteHeroImage = (mediaId: number) => {
+        router.delete('/settings/hero-images', { data: { media_id: mediaId } });
     };
 
     const handlePhotographerPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,10 +228,10 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
                         </p>
 
                         <div className="flex items-center gap-6">
-                            {studio?.logo_path ? (
+                            {studio?.logo_url ? (
                                 <div className="relative group">
                                     <img
-                                        src={imgSrc(studio.logo_path)}
+                                        src={studio.logo_url}
                                         alt="Studio logo"
                                         className="w-20 h-20 rounded-xl object-contain border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
                                     />
@@ -250,7 +264,7 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
                                     disabled={logoUploading}
                                     className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50"
                                 >
-                                    {logoUploading ? 'Uploading...' : studio?.logo_path ? 'Change Logo' : 'Upload Logo'}
+                                    {logoUploading ? 'Uploading...' : studio?.logo_url ? 'Change Logo' : 'Upload Logo'}
                                 </button>
                                 <p className="text-xs text-slate-400 mt-1">PNG, JPG, SVG up to 5MB</p>
                             </div>
@@ -264,12 +278,12 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
                             Upload images for the hero section on your public-facing website. The first image will be the primary hero background.
                         </p>
 
-                        {studio?.hero_images && studio.hero_images.length > 0 && (
+                        {studio?.hero_media && studio.hero_media.length > 0 && (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
-                                {studio.hero_images.map((img, idx) => (
-                                    <div key={idx} className="relative group aspect-[16/10] rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                                {studio.hero_media.map((media, idx) => (
+                                    <div key={media.id} className="relative group aspect-[16/10] rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
                                         <img
-                                            src={imgSrc(img)}
+                                            src={media.display_url || media.url}
                                             alt={`Hero image ${idx + 1}`}
                                             className="w-full h-full object-cover"
                                         />
@@ -279,7 +293,7 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
                                             </span>
                                         )}
                                         <button
-                                            onClick={() => handleDeleteHeroImage(idx)}
+                                            onClick={() => handleDeleteHeroImage(media.id)}
                                             className="absolute top-2 right-2 w-7 h-7 bg-red-500/90 text-white rounded-full text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
                                             &times;
@@ -317,10 +331,10 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
                         </p>
 
                         <div className="flex items-center gap-6">
-                            {studio?.photographer_photo_path ? (
+                            {studio?.photographer_photo_url ? (
                                 <div className="relative group">
                                     <img
-                                        src={imgSrc(studio.photographer_photo_path)}
+                                        src={studio.photographer_photo_url}
                                         alt="Photographer"
                                         className="w-24 h-32 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
                                     />
@@ -353,7 +367,7 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
                                     disabled={photoUploading}
                                     className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50"
                                 >
-                                    {photoUploading ? 'Uploading...' : studio?.photographer_photo_path ? 'Change Photo' : 'Upload Photo'}
+                                    {photoUploading ? 'Uploading...' : studio?.photographer_photo_url ? 'Change Photo' : 'Upload Photo'}
                                 </button>
                                 <p className="text-xs text-slate-400 mt-1">Portrait orientation recommended (3:4 ratio). Max 10MB.</p>
                             </div>

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Package;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class SettingsController extends Controller
@@ -12,9 +11,21 @@ class SettingsController extends Controller
     public function index(Request $request)
     {
         $studio = $request->user()->studio;
+        $studio?->load('media');
 
         return Inertia::render('Settings/Index', [
-            'studio' => $studio,
+            'studio' => $studio ? [
+                ...$studio->toArray(),
+                'logo_url' => $studio->logo_url,
+                'photographer_photo_url' => $studio->photographer_photo_url,
+                'hero_image_urls' => $studio->hero_image_urls,
+                'hero_media' => $studio->getMedia('hero-images')->map(fn ($m) => [
+                    'id' => $m->id,
+                    'url' => $m->getUrl(),
+                    'display_url' => $m->getUrl('display'),
+                    'thumb_url' => $m->getUrl('thumb'),
+                ]),
+            ] : null,
             'packages' => $studio?->packages()->orderBy('sort_order')->get() ?? [],
         ]);
     }
@@ -53,13 +64,7 @@ class SettingsController extends Controller
         ]);
 
         $studio = $request->user()->studio;
-
-        if ($studio->logo_path) {
-            Storage::disk('public')->delete($studio->logo_path);
-        }
-
-        $path = $request->file('logo')->store('studio/logo', 'public');
-        $studio->update(['logo_path' => $path]);
+        $studio->addMediaFromRequest('logo')->toMediaCollection('logo');
 
         return back()->with('success', 'Logo updated.');
     }
@@ -67,11 +72,7 @@ class SettingsController extends Controller
     public function deleteLogo(Request $request)
     {
         $studio = $request->user()->studio;
-
-        if ($studio->logo_path) {
-            Storage::disk('public')->delete($studio->logo_path);
-            $studio->update(['logo_path' => null]);
-        }
+        $studio->clearMediaCollection('logo');
 
         return back()->with('success', 'Logo removed.');
     }
@@ -84,14 +85,10 @@ class SettingsController extends Controller
         ]);
 
         $studio = $request->user()->studio;
-        $existing = $studio->hero_images ?? [];
 
         foreach ($request->file('hero_images') as $file) {
-            $path = $file->store('studio/hero', 'public');
-            $existing[] = $path;
+            $studio->addMedia($file)->toMediaCollection('hero-images');
         }
-
-        $studio->update(['hero_images' => $existing]);
 
         return back()->with('success', 'Hero images uploaded.');
     }
@@ -99,18 +96,12 @@ class SettingsController extends Controller
     public function deleteHeroImage(Request $request)
     {
         $request->validate([
-            'index' => 'required|integer|min:0',
+            'media_id' => 'required|integer',
         ]);
 
         $studio = $request->user()->studio;
-        $images = $studio->hero_images ?? [];
-        $index = $request->input('index');
-
-        if (isset($images[$index])) {
-            Storage::disk('public')->delete($images[$index]);
-            array_splice($images, $index, 1);
-            $studio->update(['hero_images' => $images]);
-        }
+        $media = $studio->getMedia('hero-images')->firstWhere('id', $request->media_id);
+        $media?->delete();
 
         return back()->with('success', 'Hero image removed.');
     }
@@ -166,13 +157,7 @@ class SettingsController extends Controller
         ]);
 
         $studio = $request->user()->studio;
-
-        if ($studio->photographer_photo_path) {
-            Storage::disk('public')->delete($studio->photographer_photo_path);
-        }
-
-        $path = $request->file('photo')->store('studio/photographer', 'public');
-        $studio->update(['photographer_photo_path' => $path]);
+        $studio->addMediaFromRequest('photo')->toMediaCollection('photographer-photo');
 
         return back()->with('success', 'Photographer photo updated.');
     }
@@ -180,11 +165,7 @@ class SettingsController extends Controller
     public function deletePhotographerPhoto(Request $request)
     {
         $studio = $request->user()->studio;
-
-        if ($studio->photographer_photo_path) {
-            Storage::disk('public')->delete($studio->photographer_photo_path);
-            $studio->update(['photographer_photo_path' => null]);
-        }
+        $studio->clearMediaCollection('photographer-photo');
 
         return back()->with('success', 'Photographer photo removed.');
     }

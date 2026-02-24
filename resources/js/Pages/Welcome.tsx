@@ -21,9 +21,9 @@ interface StudioData {
     description?: string;
     email?: string;
     phone?: string;
-    logo_path?: string;
-    photographer_photo_path?: string;
-    hero_images?: string[];
+    logo_url?: string;
+    photographer_photo_url?: string;
+    hero_image_urls?: string[];
     social_links?: {
         instagram?: string;
         facebook?: string;
@@ -36,7 +36,7 @@ interface TestimonialData {
     client_role?: string;
     content: string;
     rating: number;
-    photo_path?: string;
+    photo_url?: string;
     is_featured: boolean;
 }
 
@@ -262,8 +262,8 @@ export default function Welcome({
 
     /* ── Build hero background image ── */
     const heroImage = (() => {
-        if (studio?.hero_images && studio.hero_images.length > 0) {
-            return imgSrc(studio.hero_images[0]);
+        if (studio?.hero_image_urls && studio.hero_image_urls.length > 0) {
+            return imgSrc(studio.hero_image_urls[0]);
         }
         if (portfolios.length > 0) {
             const first = portfolios[0];
@@ -314,9 +314,7 @@ export default function Welcome({
     const tabList = ['All', ...categories];
 
     /* ── Photographer photo ── */
-    const photographerPhoto = studio?.photographer_photo_path
-        ? imgSrc(studio.photographer_photo_path)
-        : '/images/kyle-1.jpg';
+    const photographerPhoto = studio?.photographer_photo_url || '/images/kyle-1.jpg';
 
     /* ── Reusable SVG icons ── */
     const CameraIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
@@ -353,9 +351,9 @@ export default function Welcome({
             >
                 <nav className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 flex items-center justify-between h-20">
                     <Link href="/" className="flex items-center gap-3 group">
-                        {studio?.logo_path ? (
+                        {studio?.logo_url ? (
                             <img
-                                src={imgSrc(studio.logo_path)}
+                                src={studio.logo_url}
                                 alt="Logo"
                                 className="w-10 h-10 rounded-lg object-contain"
                             />
@@ -759,9 +757,9 @@ export default function Welcome({
 
                                                 {/* Client info */}
                                                 <div className="flex items-center justify-center gap-4">
-                                                    {testimonial.photo_path ? (
+                                                    {testimonial.photo_url ? (
                                                         <img
-                                                            src={imgSrc(testimonial.photo_path)}
+                                                            src={testimonial.photo_url}
                                                             alt={testimonial.client_name}
                                                             className="w-12 h-12 rounded-full object-cover border-2 border-accent/30"
                                                         />
@@ -888,9 +886,9 @@ export default function Welcome({
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         {/* Brand */}
                         <div className="flex items-center gap-3">
-                            {studio?.logo_path ? (
+                            {studio?.logo_url ? (
                                 <img
-                                    src={imgSrc(studio.logo_path)}
+                                    src={studio.logo_url}
                                     alt="Logo"
                                     className="w-9 h-9 rounded-lg object-contain"
                                 />

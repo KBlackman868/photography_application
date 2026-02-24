@@ -9,7 +9,7 @@ interface TestimonialData {
     client_role: string | null;
     content: string;
     rating: number;
-    photo_path: string | null;
+    photo_url: string | null;
     is_featured: boolean;
     is_active: boolean;
     sort_order: number;
@@ -152,9 +152,9 @@ export default function TestimonialsIndex({ auth, testimonials }: Props) {
                                         <div className="flex gap-4">
                                             {/* Photo */}
                                             <div className="flex-shrink-0">
-                                                {t.photo_path ? (
+                                                {t.photo_url ? (
                                                     <img
-                                                        src={imgSrc(t.photo_path)}
+                                                        src={imgSrc(t.photo_url)}
                                                         alt={t.client_name}
                                                         className="w-14 h-14 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
                                                     />

@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Studio extends Model
+class Studio extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'name',
@@ -40,6 +43,71 @@ class Studio extends Model
             'availability_hours' => 'array',
         ];
     }
+
+    /* ── Spatie Media Collections ── */
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('logo')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp']);
+
+        $this->addMediaCollection('hero-images')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('photographer-photo')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(500)
+            ->height(500)
+            ->sharpen(10)
+            ->format('webp')
+            ->quality(80)
+            ->performOnCollections('hero-images', 'photographer-photo');
+
+        $this->addMediaConversion('display')
+            ->width(1800)
+            ->sharpen(10)
+            ->format('webp')
+            ->quality(85)
+            ->performOnCollections('hero-images', 'photographer-photo');
+    }
+
+    /* ── Convenience Accessors ── */
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('logo') ?: ($this->logo_path ? '/storage/' . $this->logo_path : null);
+    }
+
+    public function getPhotographerPhotoUrlAttribute(): ?string
+    {
+        $media = $this->getFirstMedia('photographer-photo');
+        if ($media) {
+            return $media->getUrl('display');
+        }
+
+        return $this->photographer_photo_path ? '/storage/' . $this->photographer_photo_path : null;
+    }
+
+    public function getHeroImageUrlsAttribute(): array
+    {
+        $mediaUrls = $this->getMedia('hero-images')->map(fn (Media $m) => $m->getUrl('display'))->toArray();
+
+        if (! empty($mediaUrls)) {
+            return $mediaUrls;
+        }
+
+        // Fallback to legacy hero_images column
+        return $this->hero_images ?? [];
+    }
+
+    /* ── Relationships ── */
 
     public function users(): HasMany
     {
