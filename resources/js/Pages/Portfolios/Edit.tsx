@@ -162,7 +162,7 @@ export default function PortfolioEdit({ portfolio }: Props) {
                                                 </div>
 
                                                 {/* Caption */}
-                                                <div className="p-2">x``
+                                                <div className="p-2">
                                                     <input
                                                         type="text"
                                                         defaultValue={photo.caption || ''}
