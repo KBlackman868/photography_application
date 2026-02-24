@@ -52,7 +52,7 @@ interface WelcomeProps extends PageProps {
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-const imgSrc = (p: string) => p.startsWith('http') ? p : '/storage/' + p;
+const imgSrc = (p: string) => (p.startsWith('http') || p.startsWith('/')) ? p : '/storage/' + p;
 
 const FALLBACK_IMAGES = [
     { src: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=800&q=80', title: 'Weddings', category: 'Weddings' },

@@ -89,7 +89,11 @@ class Studio extends Model implements HasMedia
     {
         $media = $this->getFirstMedia('photographer-photo');
         if ($media) {
-            return $media->getUrl('display');
+            if ($media->hasGeneratedConversion('display')) {
+                return $media->getUrl('display');
+            }
+
+            return $media->getUrl();
         }
 
         return $this->photographer_photo_path ? '/storage/' . $this->photographer_photo_path : null;
@@ -97,14 +101,28 @@ class Studio extends Model implements HasMedia
 
     public function getHeroImageUrlsAttribute(): array
     {
-        $mediaUrls = $this->getMedia('hero-images')->map(fn (Media $m) => $m->getUrl('display'))->toArray();
+        $mediaItems = $this->getMedia('hero-images');
 
-        if (! empty($mediaUrls)) {
-            return $mediaUrls;
+        if ($mediaItems->isNotEmpty()) {
+            return $mediaItems->map(function (Media $m) {
+                if ($m->hasGeneratedConversion('display')) {
+                    return $m->getUrl('display');
+                }
+
+                return $m->getUrl();
+            })->toArray();
         }
 
         // Fallback to legacy hero_images column
-        return $this->hero_images ?? [];
+        $legacy = $this->hero_images ?? [];
+
+        return array_map(function ($path) {
+            if (str_starts_with($path, 'http') || str_starts_with($path, '/')) {
+                return $path;
+            }
+
+            return '/storage/' . $path;
+        }, $legacy);
     }
 
     /* ── Relationships ── */

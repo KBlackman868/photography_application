@@ -22,8 +22,8 @@ class SettingsController extends Controller
                 'hero_media' => $studio->getMedia('hero-images')->map(fn ($m) => [
                     'id' => $m->id,
                     'url' => $m->getUrl(),
-                    'display_url' => $m->getUrl('display'),
-                    'thumb_url' => $m->getUrl('thumb'),
+                    'display_url' => $m->hasGeneratedConversion('display') ? $m->getUrl('display') : $m->getUrl(),
+                    'thumb_url' => $m->hasGeneratedConversion('thumb') ? $m->getUrl('thumb') : $m->getUrl(),
                 ]),
             ] : null,
             'packages' => $studio?->packages()->orderBy('sort_order')->get() ?? [],
@@ -64,7 +64,19 @@ class SettingsController extends Controller
         ]);
 
         $studio = $request->user()->studio;
-        $studio->addMediaFromRequest('logo')->toMediaCollection('logo');
+
+        // Store file directly as a reliable fallback
+        $path = $request->file('logo')->store("studios/{$studio->id}", 'public');
+        $studio->update(['logo_path' => $path]);
+
+        // Also add to Spatie
+        try {
+            $studio->addMedia(storage_path("app/public/{$path}"))
+                ->preservingOriginal()
+                ->toMediaCollection('logo');
+        } catch (\Throwable $e) {
+            \Log::warning("Logo media upload failed: " . $e->getMessage());
+        }
 
         return back()->with('success', 'Logo updated.');
     }
@@ -85,10 +97,23 @@ class SettingsController extends Controller
         ]);
 
         $studio = $request->user()->studio;
+        $heroPaths = $studio->hero_images ?? [];
 
         foreach ($request->file('hero_images') as $file) {
-            $studio->addMedia($file)->toMediaCollection('hero-images');
+            // Store file directly as a reliable fallback
+            $path = $file->store("studios/{$studio->id}/hero", 'public');
+            $heroPaths[] = $path;
+
+            // Also add to Spatie for conversions
+            try {
+                $studio->copyMedia(storage_path("app/public/{$path}"))
+                    ->toMediaCollection('hero-images');
+            } catch (\Throwable $e) {
+                \Log::warning("Hero image media conversion failed: " . $e->getMessage());
+            }
         }
+
+        $studio->update(['hero_images' => $heroPaths]);
 
         return back()->with('success', 'Hero images uploaded.');
     }
@@ -157,7 +182,19 @@ class SettingsController extends Controller
         ]);
 
         $studio = $request->user()->studio;
-        $studio->addMediaFromRequest('photo')->toMediaCollection('photographer-photo');
+
+        // Store file directly as a reliable fallback
+        $path = $request->file('photo')->store("studios/{$studio->id}", 'public');
+        $studio->update(['photographer_photo_path' => $path]);
+
+        // Also add to Spatie for conversions
+        try {
+            $studio->addMedia(storage_path("app/public/{$path}"))
+                ->preservingOriginal()
+                ->toMediaCollection('photographer-photo');
+        } catch (\Throwable $e) {
+            \Log::warning("Photographer photo media conversion failed: " . $e->getMessage());
+        }
 
         return back()->with('success', 'Photographer photo updated.');
     }

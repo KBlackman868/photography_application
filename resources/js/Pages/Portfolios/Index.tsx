@@ -68,7 +68,7 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {portfolios.map((portfolio) => {
                                 const coverSrc = portfolio.cover_photo_path
-                                    ? (portfolio.cover_photo_path.startsWith('http') ? portfolio.cover_photo_path : `/storage/${portfolio.cover_photo_path}`)
+                                    ? (portfolio.cover_photo_path.startsWith('http') || portfolio.cover_photo_path.startsWith('/') ? portfolio.cover_photo_path : `/storage/${portfolio.cover_photo_path}`)
                                     : null;
                                 return (
                                     <div

@@ -94,19 +94,31 @@ class PortfolioController extends Controller
         $maxOrder = $portfolio->portfolioPhotos()->max('sort_order') ?? 0;
 
         foreach ($request->file('photos') as $file) {
+            // Store file directly to disk as a reliable fallback
+            $path = $file->store("portfolios/{$portfolio->id}", 'public');
+
             $photo = PortfolioPhoto::create([
                 'portfolio_id' => $portfolio->id,
+                'photo_path' => $path,
                 'sort_order' => ++$maxOrder,
             ]);
 
-            $photo->addMedia($file)->toMediaCollection('photo');
+            // Also add to Spatie for image conversions
+            try {
+                $photo->copyMedia(storage_path("app/public/{$path}"))
+                    ->toMediaCollection('photo');
+            } catch (\Throwable $e) {
+                // Spatie failed, but photo_path fallback still works
+                \Log::warning("Media conversion failed for photo {$photo->id}: " . $e->getMessage());
+            }
         }
 
         // Set cover photo if none exists
         if (! $portfolio->cover_photo_path) {
             $first = $portfolio->portfolioPhotos()->with('media')->orderBy('sort_order')->first();
             if ($first) {
-                $portfolio->update(['cover_photo_path' => $first->thumb_url]);
+                $coverUrl = $first->thumb_url ?? $first->original_url;
+                $portfolio->update(['cover_photo_path' => $coverUrl]);
             }
         }
 

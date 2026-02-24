@@ -53,7 +53,11 @@ class PortfolioPhoto extends Model implements HasMedia
     {
         $media = $this->getFirstMedia('photo');
         if ($media) {
-            return $media->getUrl('display');
+            if ($media->hasGeneratedConversion('display')) {
+                return $media->getUrl('display');
+            }
+
+            return $media->getUrl();
         }
 
         return $this->display_path ? '/storage/' . $this->display_path : null;
@@ -63,7 +67,11 @@ class PortfolioPhoto extends Model implements HasMedia
     {
         $media = $this->getFirstMedia('photo');
         if ($media) {
-            return $media->getUrl('thumb');
+            if ($media->hasGeneratedConversion('thumb')) {
+                return $media->getUrl('thumb');
+            }
+
+            return $media->getUrl();
         }
 
         return $this->thumb_path ? '/storage/' . $this->thumb_path : null;

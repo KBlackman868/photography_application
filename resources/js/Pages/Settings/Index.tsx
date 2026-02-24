@@ -149,7 +149,7 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
         router.delete('/settings/photographer-photo');
     };
 
-    const imgSrc = (path: string) => path.startsWith('http') ? path : '/storage/' + path;
+    const imgSrc = (path: string) => (path.startsWith('http') || path.startsWith('/')) ? path : '/storage/' + path;
 
     // Package handlers
     const openCreatePackage = () => {
