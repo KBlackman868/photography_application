@@ -193,22 +193,22 @@ export default function PortfolioEdit({ portfolio }: Props) {
                                 <h3 className="font-bold text-lg">Portfolio Details</h3>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title</label>
                                     <input
                                         type="text"
                                         value={data.title}
                                         onChange={(e) => setData('title', e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary"
+                                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-primary"
                                     />
                                     {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
                                     <select
                                         value={data.category}
                                         onChange={(e) => setData('category', e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary"
+                                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-primary"
                                     >
                                         {['wedding', 'portrait', 'event', 'commercial', 'newborn', 'landscape', 'other'].map((c) => (
                                             <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
@@ -217,11 +217,11 @@ export default function PortfolioEdit({ portfolio }: Props) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
                                     <textarea
                                         value={data.description}
                                         onChange={(e) => setData('description', e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-primary"
+                                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm resize-none focus:ring-2 focus:ring-primary"
                                         rows={4}
                                     />
                                 </div>
@@ -231,7 +231,7 @@ export default function PortfolioEdit({ portfolio }: Props) {
                                         type="checkbox"
                                         checked={data.is_published}
                                         onChange={(e) => setData('is_published', e.target.checked)}
-                                        className="rounded border-slate-300 text-primary focus:ring-primary"
+                                        className="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary"
                                     />
                                     Published (visible on public portfolio page)
                                 </label>

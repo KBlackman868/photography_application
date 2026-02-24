@@ -137,7 +137,7 @@ export default function BookingCalendar({ bookings }: Props) {
                                 onClick={view === 'month' ? prevMonth : prevWeek}
                                 className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
-                                <span className="material-symbols-outlined text-slate-600">chevron_left</span>
+                                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">chevron_left</span>
                             </button>
                             <h3 className="font-display text-xl font-bold min-w-[200px] text-center">
                                 {view === 'month'
@@ -149,7 +149,7 @@ export default function BookingCalendar({ bookings }: Props) {
                                 onClick={view === 'month' ? nextMonth : nextWeek}
                                 className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
-                                <span className="material-symbols-outlined text-slate-600">chevron_right</span>
+                                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">chevron_right</span>
                             </button>
                         </div>
                         <button

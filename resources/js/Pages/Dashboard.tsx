@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Gallery, Project, PageProps } from '@/types';
 import { useCountUp } from '@/hooks/useCountUp';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useTheme } from '@/hooks/useTheme';
 import {
     AreaChart,
     Area,
@@ -154,6 +155,8 @@ export default function Dashboard({
     recentActivity,
     isAdmin,
 }: Props) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const statsRef = useScrollReveal();
     const chartsRef = useScrollReveal();
     const activityRef = useScrollReveal();
@@ -317,23 +320,25 @@ export default function Dashboard({
                                                 </defs>
                                                 <CartesianGrid
                                                     strokeDasharray="3 3"
-                                                    stroke="rgba(255,255,255,0.06)"
+                                                    stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}
                                                 />
                                                 <XAxis
                                                     dataKey="month"
-                                                    stroke="rgba(255,255,255,0.3)"
+                                                    stroke={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'}
                                                     fontSize={12}
+                                                    tick={{ fill: isDark ? '#94a3b8' : '#64748b' }}
                                                 />
                                                 <YAxis
-                                                    stroke="rgba(255,255,255,0.3)"
+                                                    stroke={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'}
                                                     fontSize={12}
+                                                    tick={{ fill: isDark ? '#94a3b8' : '#64748b' }}
                                                 />
                                                 <Tooltip
                                                     contentStyle={{
-                                                        backgroundColor: '#1a1a2e',
-                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
                                                         borderRadius: '8px',
-                                                        color: '#fff',
+                                                        color: isDark ? '#f1f5f9' : '#1e293b',
                                                     }}
                                                 />
                                                 <Area
@@ -384,10 +389,10 @@ export default function Dashboard({
                                                     </Pie>
                                                     <Tooltip
                                                         contentStyle={{
-                                                            backgroundColor: '#1a1a2e',
-                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                                                            border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
                                                             borderRadius: '8px',
-                                                            color: '#fff',
+                                                            color: isDark ? '#f1f5f9' : '#1e293b',
                                                         }}
                                                         formatter={(value: number | undefined, name: string | undefined) => [
                                                             value ?? 0,

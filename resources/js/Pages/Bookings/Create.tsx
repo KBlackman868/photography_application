@@ -449,7 +449,7 @@ export default function BookingCreate({ packages, studioName, availabilityHours:
 
                                     {packages.length > 0 && (
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">Package (Optional)</label>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Package (Optional)</label>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 {packages.map((pkg) => (
                                                     <button
@@ -478,7 +478,7 @@ export default function BookingCreate({ packages, studioName, availabilityHours:
                                         <textarea
                                             value={data.message}
                                             onChange={(e) => setData('message', e.target.value)}
-                                            className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-primary focus:border-primary"
+                                            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 rounded-xl text-sm resize-none focus:ring-2 focus:ring-primary focus:border-primary"
                                             rows={4}
                                             placeholder="Tell me about your vision, any special requests, or questions..."
                                         />
@@ -487,7 +487,7 @@ export default function BookingCreate({ packages, studioName, availabilityHours:
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50"
+                                        className="w-full py-3.5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors disabled:opacity-50"
                                     >
                                         {processing ? 'Submitting...' : 'Submit Booking Request'}
                                     </button>

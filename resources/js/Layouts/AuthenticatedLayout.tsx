@@ -19,7 +19,7 @@ export default function Authenticated({
     const { theme, toggleTheme } = useTheme();
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark font-display">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
             <nav className="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">

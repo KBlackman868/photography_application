@@ -148,7 +148,7 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                                         <textarea
                                             value={data.description}
                                             onChange={(e) => setData('description', e.target.value)}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-primary"
+                                            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg text-sm resize-none focus:ring-2 focus:ring-primary"
                                             rows={3}
                                         />
                                     </div>
