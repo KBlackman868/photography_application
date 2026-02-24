@@ -281,10 +281,10 @@ export default function Welcome({
             if (allGalleryImages.length >= 9) break;
             if (p.photos.length > 0) {
                 const ph = p.photos[0];
-                const thumbSrc = ph.thumb_path ? imgSrc(ph.thumb_path) : imgSrc(ph.photo_path);
+                const displaySrc = ph.display_path ? imgSrc(ph.display_path) : imgSrc(ph.photo_path);
                 allGalleryImages.push({
                     src: imgSrc(ph.photo_path),
-                    thumb: thumbSrc,
+                    thumb: displaySrc,
                     title: p.title,
                     slug: p.slug,
                     category: p.category,
@@ -655,10 +655,6 @@ export default function Welcome({
                                                     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80';
                                             }}
                                         />
-                                    </div>
-                                    <div className="absolute -bottom-4 -right-4 md:-bottom-6 md:-right-6 bg-accent text-background-dark rounded-2xl px-6 py-4 shadow-xl shadow-accent/20">
-                                        <p className="font-display font-extrabold text-2xl leading-none">8+</p>
-                                        <p className="text-[10px] uppercase tracking-widest font-semibold mt-1">Years</p>
                                     </div>
                                 </div>
                             </div>
