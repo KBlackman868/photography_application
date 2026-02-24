@@ -84,6 +84,12 @@ export default function Authenticated({
                                             Bookings
                                         </NavLink>
                                         <NavLink
+                                            href={route('testimonials.index')}
+                                            active={route().current('testimonials.*')}
+                                        >
+                                            Testimonials
+                                        </NavLink>
+                                        <NavLink
                                             href={route('settings.index')}
                                             active={route().current('settings.*')}
                                         >
@@ -230,6 +236,12 @@ export default function Authenticated({
                                     active={route().current('bookings.*')}
                                 >
                                     Bookings
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('testimonials.index')}
+                                    active={route().current('testimonials.*')}
+                                >
+                                    Testimonials
                                 </ResponsiveNavLink>
                                 <ResponsiveNavLink
                                     href={route('settings.index')}

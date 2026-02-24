@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Portfolio;
 use App\Models\Studio;
+use App\Models\Testimonial;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -36,6 +37,24 @@ class WelcomeController extends Controller
 
         $studio = Studio::first();
 
+        $testimonials = $studio
+            ? Testimonial::where('studio_id', $studio->id)
+                ->active()
+                ->orderByDesc('is_featured')
+                ->orderBy('sort_order')
+                ->limit(6)
+                ->get()
+                ->map(fn (Testimonial $t) => [
+                    'id' => $t->id,
+                    'client_name' => $t->client_name,
+                    'client_role' => $t->client_role,
+                    'content' => $t->content,
+                    'rating' => $t->rating,
+                    'photo_path' => $t->photo_path,
+                    'is_featured' => $t->is_featured,
+                ])
+            : [];
+
         return Inertia::render('Welcome', [
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
@@ -47,9 +66,11 @@ class WelcomeController extends Controller
                 'email' => $studio->email,
                 'phone' => $studio->phone,
                 'logo_path' => $studio->logo_path,
+                'photographer_photo_path' => $studio->photographer_photo_path,
                 'hero_images' => $studio->hero_images,
                 'social_links' => $studio->social_links,
             ] : null,
+            'testimonials' => $testimonials,
         ]);
     }
 }

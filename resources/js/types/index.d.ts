@@ -11,12 +11,23 @@ export interface User {
     studio_id?: number;
 }
 
+export interface Testimonial {
+    id: number;
+    client_name: string;
+    client_role?: string;
+    content: string;
+    rating: number;
+    photo_path?: string;
+    is_featured: boolean;
+}
+
 export interface Studio {
     id: number;
     name: string;
     slug: string;
     description?: string;
     logo_path?: string;
+    photographer_photo_path?: string;
     website?: string;
     email?: string;
     phone?: string;

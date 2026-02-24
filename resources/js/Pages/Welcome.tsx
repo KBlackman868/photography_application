@@ -22,11 +22,22 @@ interface StudioData {
     email?: string;
     phone?: string;
     logo_path?: string;
+    photographer_photo_path?: string;
     hero_images?: string[];
     social_links?: {
         instagram?: string;
         facebook?: string;
     };
+}
+
+interface TestimonialData {
+    id: number;
+    client_name: string;
+    client_role?: string;
+    content: string;
+    rating: number;
+    photo_path?: string;
+    is_featured: boolean;
 }
 
 interface WelcomeProps extends PageProps {
@@ -35,6 +46,7 @@ interface WelcomeProps extends PageProps {
     portfolios: PortfolioData[];
     categories: string[];
     studio: StudioData | null;
+    testimonials: TestimonialData[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -107,6 +119,26 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Star Rating                                                        */
+/* ------------------------------------------------------------------ */
+function StarRating({ rating }: { rating: number }) {
+    return (
+        <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <svg
+                    key={star}
+                    className={`w-4 h-4 ${star <= rating ? 'text-accent' : 'text-white/10'}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+            ))}
+        </div>
+    );
+}
+
 /* ================================================================== */
 /*  MAIN COMPONENT                                                     */
 /* ================================================================== */
@@ -117,11 +149,15 @@ export default function Welcome({
     portfolios = [],
     categories = [],
     studio,
+    testimonials = [],
 }: WelcomeProps) {
     /* ── State ── */
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [activeTab, setActiveTab] = useState('All');
+
+    /* ── Testimonial carousel ── */
+    const [activeTestimonial, setActiveTestimonial] = useState(0);
 
     /* ── Text scramble for hero title ── */
     const { text: scrambledName, done: scrambleDone } = useTextScramble('Kyle Blackman', 1800, 35);
@@ -144,6 +180,8 @@ export default function Welcome({
     const aboutRightRef = useScrollReveal(0.2);
     const servicesHeaderRef = useScrollReveal(0.2);
     const servicesGridRef = useScrollReveal(0.1);
+    const testimonialsHeaderRef = useScrollReveal(0.2);
+    const testimonialsContentRef = useScrollReveal(0.15);
     const ctaContentRef = useScrollReveal(0.2);
 
     /* ── Navbar scroll detection ── */
@@ -188,6 +226,15 @@ export default function Welcome({
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
+    /* ── Auto-rotate testimonials ── */
+    useEffect(() => {
+        if (testimonials.length <= 1) return;
+        const interval = setInterval(() => {
+            setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+        }, 6000);
+        return () => clearInterval(interval);
+    }, [testimonials.length]);
+
     /* ── Update tab indicator when active tab changes ── */
     const updateIndicator = useCallback((tabName: string) => {
         const btn = tabRefs.current.get(tabName);
@@ -203,12 +250,10 @@ export default function Welcome({
     }, []);
 
     useEffect(() => {
-        // Small delay to let DOM settle
         const timeout = setTimeout(() => updateIndicator(activeTab), 50);
         return () => clearTimeout(timeout);
     }, [activeTab, updateIndicator]);
 
-    // Also update on resize
     useEffect(() => {
         const handleResize = () => updateIndicator(activeTab);
         window.addEventListener('resize', handleResize);
@@ -217,7 +262,6 @@ export default function Welcome({
 
     /* ── Build hero background image ── */
     const heroImage = (() => {
-        // Use admin-uploaded hero image first
         if (studio?.hero_images && studio.hero_images.length > 0) {
             return imgSrc(studio.hero_images[0]);
         }
@@ -268,6 +312,11 @@ export default function Welcome({
 
     /* ── Tab list ── */
     const tabList = ['All', ...categories];
+
+    /* ── Photographer photo ── */
+    const photographerPhoto = studio?.photographer_photo_path
+        ? imgSrc(studio.photographer_photo_path)
+        : '/images/kyle-1.jpg';
 
     /* ── Reusable SVG icons ── */
     const CameraIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
@@ -332,6 +381,11 @@ export default function Welcome({
                                 {label}
                             </a>
                         ))}
+                        {testimonials.length > 0 && (
+                            <a href="#testimonials" className="text-[13px] font-medium text-white/60 hover:text-accent transition-colors duration-300">
+                                Reviews
+                            </a>
+                        )}
                         <a href="/portfolio" className="text-[13px] font-medium text-white/60 hover:text-accent transition-colors duration-300">
                             Gallery
                         </a>
@@ -452,7 +506,6 @@ export default function Welcome({
                         ref={heroContentRef}
                         className="relative z-10 max-w-5xl mx-auto px-4 md:px-8 text-center hero-animate will-change-[opacity]"
                     >
-                        {/* Child 1: scramble name — animates at 0.3s */}
                         <h1 className="mb-4">
                             <span
                                 className={`inline-block text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-none ${
@@ -464,12 +517,10 @@ export default function Welcome({
                             </span>
                         </h1>
 
-                        {/* Child 2: subtitle — animates at 2.2s (after scramble finishes) */}
                         <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-12 font-light leading-relaxed tracking-wide">
                             Photographer &bull; Visual Storyteller
                         </p>
 
-                        {/* Child 3: CTA buttons — animates at 2.5s */}
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
                                 href="/portfolio"
@@ -486,7 +537,6 @@ export default function Welcome({
                             </Link>
                         </div>
 
-                        {/* Child 4: spacer for hero-animate nth-child(4) at 2.8s */}
                         <div aria-hidden="true" />
                     </div>
 
@@ -542,9 +592,7 @@ export default function Welcome({
                 </section>
 
                 {/* ============== 3. PORTFOLIO GRID — Floating Hover ============== */}
-                <section
-                    className="pb-24 md:pb-36 px-4 md:px-8 lg:px-16"
-                >
+                <section className="pb-24 md:pb-36 px-4 md:px-8 lg:px-16">
                     <div className="max-w-7xl mx-auto">
                         <div ref={portfolioGridRef} className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {filteredGallery.slice(0, 9).map((img, idx) => (
@@ -560,7 +608,6 @@ export default function Welcome({
                                             loading="lazy"
                                             decoding="async"
                                         />
-                                        {/* Hover overlay */}
                                         <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
                                             <div>
                                                 <p className="text-accent text-[10px] uppercase tracking-[0.2em] font-semibold mb-1">
@@ -589,7 +636,7 @@ export default function Welcome({
                     </div>
                 </section>
 
-                {/* ============== 5. MEET THE PHOTOGRAPHER ============== */}
+                {/* ============== 4. MEET THE PHOTOGRAPHER ============== */}
                 <section id="about" className="py-24 md:py-36 px-4 md:px-8 lg:px-16">
                     <div className="max-w-7xl mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
@@ -600,7 +647,7 @@ export default function Welcome({
                                     <div className="absolute -inset-2 md:-inset-3 border border-accent/10 rounded-2xl rotate-1" />
                                     <div className="relative rounded-2xl overflow-hidden rotate-1 hover:rotate-0 transition-transform duration-700">
                                         <img
-                                            src="/images/kyle-1.jpg"
+                                            src={photographerPhoto}
                                             alt="Kyle Blackman — Photographer"
                                             className="w-full aspect-[3/4] object-cover"
                                             onError={(e) => {
@@ -620,30 +667,155 @@ export default function Welcome({
                             <div ref={aboutRightRef} className="slide-right">
                                 <SectionLabel>Meet the Photographer</SectionLabel>
                                 <h2 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight leading-none mb-8">
-                                    Hi, I'm <span className="text-accent">Kyle Blackman</span>
+                                    Every Picture Tells a <span className="text-accent about-highlight">Story</span>
                                 </h2>
-                                <p className="text-white/50 text-lg leading-relaxed mb-6 font-light">
-                                    {studio?.description ||
-                                        "I'm a professional photographer passionate about capturing authentic moments and creating timeless images. Whether it's your wedding day, a family milestone, or a professional headshot, I bring creative vision and genuine care to every session."}
-                                </p>
-                                <p className="text-white/50 text-lg leading-relaxed mb-10 font-light">
-                                    My philosophy is simple — make you feel comfortable, have fun, and let the real moments
-                                    unfold. The best photos come from genuine emotions and natural connections.
-                                </p>
+
+                                <div className="space-y-6 mb-10">
+                                    <p className="text-white/60 text-lg leading-relaxed font-light about-text-reveal" style={{ animationDelay: '0.2s' }}>
+                                        When I lost my grandfather, it hit me that the photos we had of him were
+                                        more than just images on paper. They were{' '}
+                                        <span className="text-white/90 font-medium">lifelines</span>. Every
+                                        laugh captured, every look shared &mdash; those pictures helped me
+                                        hold on to who he was when the grief felt overwhelming.
+                                    </p>
+
+                                    <p className="text-white/60 text-lg leading-relaxed font-light about-text-reveal" style={{ animationDelay: '0.5s' }}>
+                                        That's when I truly understood:{' '}
+                                        <span className="text-accent font-medium italic">
+                                            photographs don't just freeze a moment &mdash; they write the chapters of your life
+                                        </span>
+                                        . They're the story you'll return to on the hardest days, and
+                                        the ones that make the best days last forever.
+                                    </p>
+
+                                    <p className="text-white/60 text-lg leading-relaxed font-light about-text-reveal" style={{ animationDelay: '0.8s' }}>
+                                        Whether it's your wedding day, a milestone birthday, a family
+                                        reunion, or just an ordinary Tuesday that deserves to be remembered
+                                        &mdash; I pour my heart into making sure those moments are
+                                        captured with the{' '}
+                                        <span className="text-white/90 font-medium">emotion they deserve</span>.
+                                        Because one day, these photos won't just be beautiful. They'll
+                                        be <span className="text-accent font-semibold">everything</span>.
+                                    </p>
+                                </div>
+
                                 <Link
                                     href="/book"
-                                    className="group inline-flex items-center gap-3 text-accent text-sm font-semibold uppercase tracking-[0.2em] hover:gap-4 transition-all duration-300 min-h-[44px]"
+                                    className="group inline-flex items-center gap-3 rounded-full bg-accent/10 border border-accent/20 text-accent px-8 py-4 text-sm font-semibold uppercase tracking-[0.15em] hover:bg-accent hover:text-background-dark hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-all duration-500 min-h-[44px]"
                                 >
-                                    Let's Work Together
-                                    <ArrowIcon />
+                                    Let's Preserve Your Story
+                                    <ArrowIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </div>
                         </div>
                     </div>
                 </section>
 
+                {/* ==================== 5. TESTIMONIALS ==================== */}
+                {testimonials.length > 0 && (
+                    <section id="testimonials" className="py-24 md:py-36 px-4 md:px-8 lg:px-16 bg-white/[0.02] relative overflow-hidden">
+                        {/* Decorative elements */}
+                        <div className="absolute top-20 left-10 w-72 h-72 bg-accent/5 rounded-full blur-3xl" />
+                        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/3 rounded-full blur-3xl" />
+
+                        <div className="max-w-5xl mx-auto relative z-10">
+                            <div ref={testimonialsHeaderRef} className="stagger-children text-center mb-16 md:mb-20">
+                                <div className="fade-up"><SectionLabel>Kind Words</SectionLabel></div>
+                                <h2 className="fade-up font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none mb-6">
+                                    What Clients <span className="text-accent">Say</span>
+                                </h2>
+                                <p className="fade-up text-white/40 text-lg max-w-xl mx-auto font-light">
+                                    Every session ends with a new friend. Here's what some of them had to say.
+                                </p>
+                            </div>
+
+                            <div ref={testimonialsContentRef} className="fade-up">
+                                {/* Main testimonial display */}
+                                <div className="relative min-h-[280px]">
+                                    {testimonials.map((testimonial, idx) => (
+                                        <div
+                                            key={testimonial.id}
+                                            className={`absolute inset-0 transition-all duration-700 ease-out ${
+                                                idx === activeTestimonial
+                                                    ? 'opacity-100 translate-y-0 scale-100'
+                                                    : idx < activeTestimonial
+                                                        ? 'opacity-0 -translate-y-8 scale-95 pointer-events-none'
+                                                        : 'opacity-0 translate-y-8 scale-95 pointer-events-none'
+                                            }`}
+                                        >
+                                            <div className="text-center max-w-3xl mx-auto">
+                                                {/* Large quote mark */}
+                                                <div className="mb-8">
+                                                    <svg className="w-16 h-16 text-accent/20 mx-auto testimonial-quote-float" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                                                    </svg>
+                                                </div>
+
+                                                {/* Stars */}
+                                                <div className="flex justify-center mb-6">
+                                                    <StarRating rating={testimonial.rating} />
+                                                </div>
+
+                                                {/* Quote text */}
+                                                <blockquote className="text-xl md:text-2xl text-white/70 leading-relaxed font-light italic mb-8">
+                                                    "{testimonial.content}"
+                                                </blockquote>
+
+                                                {/* Client info */}
+                                                <div className="flex items-center justify-center gap-4">
+                                                    {testimonial.photo_path ? (
+                                                        <img
+                                                            src={imgSrc(testimonial.photo_path)}
+                                                            alt={testimonial.client_name}
+                                                            className="w-12 h-12 rounded-full object-cover border-2 border-accent/30"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-full bg-accent/10 border-2 border-accent/20 flex items-center justify-center">
+                                                            <span className="text-accent font-bold text-lg">
+                                                                {testimonial.client_name.charAt(0)}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    <div className="text-left">
+                                                        <p className="font-display font-bold text-white text-sm">
+                                                            {testimonial.client_name}
+                                                        </p>
+                                                        {testimonial.client_role && (
+                                                            <p className="text-accent/60 text-xs uppercase tracking-wider">
+                                                                {testimonial.client_role}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Navigation dots */}
+                                {testimonials.length > 1 && (
+                                    <div className="flex items-center justify-center gap-3 mt-12">
+                                        {testimonials.map((_, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setActiveTestimonial(idx)}
+                                                className={`transition-all duration-500 rounded-full ${
+                                                    idx === activeTestimonial
+                                                        ? 'w-8 h-2 bg-accent'
+                                                        : 'w-2 h-2 bg-white/20 hover:bg-white/40'
+                                                }`}
+                                                aria-label={`View testimonial ${idx + 1}`}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
                 {/* ==================== 6. SERVICES ==================== */}
-                <section id="services" className="py-24 md:py-36 px-4 md:px-8 lg:px-16 bg-white/[0.02]">
+                <section id="services" className="py-24 md:py-36 px-4 md:px-8 lg:px-16">
                     <div className="max-w-7xl mx-auto">
                         <div ref={servicesHeaderRef} className="stagger-children text-center mb-16 md:mb-20">
                             <div className="fade-up"><SectionLabel>What I Offer</SectionLabel></div>
@@ -743,6 +915,9 @@ export default function Welcome({
                             </Link>
                             <Link href="/book" className="text-[11px] uppercase tracking-[0.2em] text-white/30 hover:text-accent transition-colors duration-300 min-h-[44px] inline-flex items-center">
                                 Book
+                            </Link>
+                            <Link href="/booking-status" className="text-[11px] uppercase tracking-[0.2em] text-white/30 hover:text-accent transition-colors duration-300 min-h-[44px] inline-flex items-center">
+                                Track Booking
                             </Link>
                             {canLogin && (
                                 <Link href={route('login')} className="text-[11px] uppercase tracking-[0.2em] text-white/30 hover:text-accent transition-colors duration-300 min-h-[44px] inline-flex items-center">

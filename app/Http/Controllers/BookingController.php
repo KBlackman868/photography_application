@@ -236,6 +236,57 @@ class BookingController extends Controller
         return back()->with('success', 'Response sent to ' . $clientEmail);
     }
 
+    /**
+     * Public: booking status lookup page
+     */
+    public function statusLookup()
+    {
+        return Inertia::render('Bookings/StatusLookup');
+    }
+
+    /**
+     * Public: check booking status by reference number + email
+     */
+    public function statusCheck(Request $request)
+    {
+        $validated = $request->validate([
+            'reference_number' => 'required|string|max:20',
+            'email' => 'required|email|max:255',
+        ]);
+
+        $booking = Booking::where('reference_number', $validated['reference_number'])->first();
+
+        if (! $booking) {
+            return back()->with('error', 'No booking found with that reference number.');
+        }
+
+        // Verify email matches
+        $bookingEmail = $this->extractField($booking->notes, 'Email');
+        if (strtolower($bookingEmail) !== strtolower($validated['email'])) {
+            return back()->with('error', 'The email address does not match our records for this booking.');
+        }
+
+        $statusLabels = [
+            'inquiry' => 'Inquiry Received',
+            'quoted' => 'Quote Sent',
+            'confirmed' => 'Confirmed',
+            'deposit_paid' => 'Deposit Paid',
+            'completed' => 'Completed',
+            'cancelled' => 'Cancelled',
+        ];
+
+        return back()->with('booking', [
+            'reference_number' => $booking->reference_number,
+            'status' => $booking->status,
+            'status_label' => $statusLabels[$booking->status] ?? ucfirst($booking->status),
+            'session_date' => $booking->session_date?->format('l, F j, Y'),
+            'session_time' => $booking->session_date?->format('g:i A'),
+            'location' => $booking->location,
+            'package_name' => $booking->package?->name,
+            'created_at' => $booking->created_at->format('F j, Y'),
+        ]);
+    }
+
     private function extractName(?string $notes): string
     {
         return $this->extractField($notes, 'Name');

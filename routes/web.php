@@ -9,6 +9,7 @@ use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,10 @@ Route::get('/portfolio/{portfolio:slug}', [PortfolioController::class, 'show'])-
 // Public booking routes
 Route::get('/book', [BookingController::class, 'create'])->name('bookings.create');
 Route::post('/book', [BookingController::class, 'store'])->name('bookings.store');
+
+// Public booking status lookup
+Route::get('/booking-status', [BookingController::class, 'statusLookup'])->name('bookings.status');
+Route::post('/booking-status', [BookingController::class, 'statusCheck'])->name('bookings.status.check');
 
 // API: booking availability (public)
 Route::get('/api/availability', [BookingController::class, 'availability'])->name('bookings.availability');
@@ -67,11 +72,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/settings/logo', [SettingsController::class, 'deleteLogo'])->name('settings.logo.delete');
     Route::post('/settings/hero-images', [SettingsController::class, 'uploadHeroImages'])->name('settings.hero.upload');
     Route::delete('/settings/hero-images', [SettingsController::class, 'deleteHeroImage'])->name('settings.hero.delete');
+    Route::post('/settings/photographer-photo', [SettingsController::class, 'uploadPhotographerPhoto'])->name('settings.photographer-photo.upload');
+    Route::delete('/settings/photographer-photo', [SettingsController::class, 'deletePhotographerPhoto'])->name('settings.photographer-photo.delete');
 
     // Packages (admin)
     Route::post('/settings/packages', [SettingsController::class, 'storePackage'])->name('settings.packages.store');
     Route::put('/settings/packages/{package}', [SettingsController::class, 'updatePackage'])->name('settings.packages.update');
     Route::delete('/settings/packages/{package}', [SettingsController::class, 'deletePackage'])->name('settings.packages.delete');
+
+    // Testimonials (admin)
+    Route::get('/testimonials', [TestimonialController::class, 'index'])->name('testimonials.index');
+    Route::post('/testimonials', [TestimonialController::class, 'store'])->name('testimonials.store');
+    Route::put('/testimonials/{testimonial}', [TestimonialController::class, 'update'])->name('testimonials.update');
+    Route::delete('/testimonials/{testimonial}', [TestimonialController::class, 'destroy'])->name('testimonials.destroy');
+    Route::post('/testimonials/{testimonial}/photo', [TestimonialController::class, 'uploadPhoto'])->name('testimonials.photo.upload');
 });
 
 require __DIR__.'/auth.php';

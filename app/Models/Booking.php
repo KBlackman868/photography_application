@@ -20,6 +20,7 @@ class Booking extends Model
         'project_id',
         'client_user_id',
         'package_id',
+        'reference_number',
         'status',
         'session_date',
         'location',
@@ -28,6 +29,20 @@ class Booking extends Model
         'deposit_amount',
         'confirmed_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Booking $booking) {
+            if (! $booking->reference_number) {
+                $booking->reference_number = 'KB-' . str_pad(
+                    (static::withTrashed()->max('id') ?? 0) + 1,
+                    5,
+                    '0',
+                    STR_PAD_LEFT
+                );
+            }
+        });
+    }
 
     protected function casts(): array
     {

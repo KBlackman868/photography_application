@@ -16,6 +16,7 @@ class Studio extends Model
         'slug',
         'description',
         'logo_path',
+        'photographer_photo_path',
         'website',
         'email',
         'phone',
@@ -78,5 +79,10 @@ class Studio extends Model
     public function clientProfiles(): HasMany
     {
         return $this->hasMany(ClientProfile::class);
+    }
+
+    public function testimonials(): HasMany
+    {
+        return $this->hasMany(Testimonial::class);
     }
 }

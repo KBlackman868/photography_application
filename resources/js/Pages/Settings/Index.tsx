@@ -57,8 +57,10 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
 
     const logoInputRef = useRef<HTMLInputElement>(null);
     const heroInputRef = useRef<HTMLInputElement>(null);
+    const photoInputRef = useRef<HTMLInputElement>(null);
     const [logoUploading, setLogoUploading] = useState(false);
     const [heroUploading, setHeroUploading] = useState(false);
+    const [photoUploading, setPhotoUploading] = useState(false);
 
     // Package modal state
     const [showPackageModal, setShowPackageModal] = useState(false);
@@ -111,6 +113,26 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
 
     const handleDeleteHeroImage = (index: number) => {
         router.delete('/settings/hero-images', { data: { index } });
+    };
+
+    const handlePhotographerPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        setPhotoUploading(true);
+        router.post('/settings/photographer-photo', formData, {
+            onFinish: () => {
+                setPhotoUploading(false);
+                if (photoInputRef.current) photoInputRef.current.value = '';
+            },
+        });
+    };
+
+    const handleDeletePhotographerPhoto = () => {
+        router.delete('/settings/photographer-photo');
     };
 
     const imgSrc = (path: string) => path.startsWith('http') ? path : '/storage/' + path;
@@ -284,6 +306,57 @@ export default function SettingsIndex({ auth, studio, packages }: Props) {
                                 {heroUploading ? 'Uploading...' : 'Upload Hero Images'}
                             </button>
                             <p className="text-xs text-slate-400 mt-1">Upload high-resolution images (1920px+ wide recommended). Max 20MB each.</p>
+                        </div>
+                    </div>
+
+                    {/* Photographer Photo */}
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                        <h3 className="font-bold text-lg mb-2">Photographer Photo</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                            Upload your photo for the "Meet the Photographer" section on the homepage.
+                        </p>
+
+                        <div className="flex items-center gap-6">
+                            {studio?.photographer_photo_path ? (
+                                <div className="relative group">
+                                    <img
+                                        src={imgSrc(studio.photographer_photo_path)}
+                                        alt="Photographer"
+                                        className="w-24 h-32 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
+                                    />
+                                    <button
+                                        onClick={handleDeletePhotographerPhoto}
+                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="Remove photo"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="w-24 h-32 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                    </svg>
+                                </div>
+                            )}
+
+                            <div>
+                                <input
+                                    ref={photoInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotographerPhotoUpload}
+                                    className="hidden"
+                                />
+                                <button
+                                    onClick={() => photoInputRef.current?.click()}
+                                    disabled={photoUploading}
+                                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50"
+                                >
+                                    {photoUploading ? 'Uploading...' : studio?.photographer_photo_path ? 'Change Photo' : 'Upload Photo'}
+                                </button>
+                                <p className="text-xs text-slate-400 mt-1">Portrait orientation recommended (3:4 ratio). Max 10MB.</p>
+                            </div>
                         </div>
                     </div>
 

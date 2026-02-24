@@ -158,4 +158,34 @@ class SettingsController extends Controller
 
         return back()->with('success', 'Package deleted.');
     }
+
+    public function uploadPhotographerPhoto(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|image|max:10240',
+        ]);
+
+        $studio = $request->user()->studio;
+
+        if ($studio->photographer_photo_path) {
+            Storage::disk('public')->delete($studio->photographer_photo_path);
+        }
+
+        $path = $request->file('photo')->store('studio/photographer', 'public');
+        $studio->update(['photographer_photo_path' => $path]);
+
+        return back()->with('success', 'Photographer photo updated.');
+    }
+
+    public function deletePhotographerPhoto(Request $request)
+    {
+        $studio = $request->user()->studio;
+
+        if ($studio->photographer_photo_path) {
+            Storage::disk('public')->delete($studio->photographer_photo_path);
+            $studio->update(['photographer_photo_path' => null]);
+        }
+
+        return back()->with('success', 'Photographer photo removed.');
+    }
 }
