@@ -58,6 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/bookings/calendar', [BookingController::class, 'calendar'])->name('bookings.calendar');
     Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
+    Route::post('/bookings/{booking}/reply', [BookingController::class, 'reply'])->name('bookings.reply');
 
     // Settings (admin only)
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

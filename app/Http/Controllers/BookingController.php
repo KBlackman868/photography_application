@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Mail\BookingConfirmation;
 use App\Mail\BookingNotification;
+use App\Mail\BookingResponse;
+use App\Mail\BookingStatusUpdate;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\Studio;
@@ -72,7 +74,6 @@ class BookingController extends Controller
                 clientEmail: $validated['email'],
             ));
         } catch (\Exception $e) {
-            // Don't fail the booking if email fails
             report($e);
         }
 
@@ -164,7 +165,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Admin: update booking status
+     * Admin: update booking status (sends status update email to client)
      */
     public function update(Request $request, Booking $booking)
     {
@@ -172,15 +173,78 @@ class BookingController extends Controller
             'status' => 'required|in:inquiry,quoted,confirmed,deposit_paid,completed,cancelled',
         ]);
 
+        $oldStatus = $booking->status;
+        $newStatus = $validated['status'];
+
         $booking->update($validated);
+
+        // Send status update email to client if status actually changed
+        if ($oldStatus !== $newStatus) {
+            $clientEmail = $this->extractField($booking->notes, 'Email');
+            $clientName = $this->extractField($booking->notes, 'Name');
+
+            if ($clientEmail) {
+                $booking->load('studio');
+                try {
+                    Mail::to($clientEmail)->send(new BookingStatusUpdate(
+                        booking: $booking,
+                        clientName: $clientName ?: 'Valued Client',
+                        oldStatus: $oldStatus,
+                        newStatus: $newStatus,
+                    ));
+                } catch (\Exception $e) {
+                    report($e);
+                }
+            }
+        }
 
         return back()->with('success', 'Booking status updated.');
     }
 
+    /**
+     * Admin: send a reply/response to a client
+     */
+    public function reply(Request $request, Booking $booking)
+    {
+        $validated = $request->validate([
+            'message' => 'required|string|max:5000',
+        ]);
+
+        $clientEmail = $this->extractField($booking->notes, 'Email');
+        $clientName = $this->extractField($booking->notes, 'Name');
+
+        if (!$clientEmail) {
+            return back()->with('error', 'No client email found for this booking.');
+        }
+
+        $booking->load('studio');
+
+        try {
+            Mail::to($clientEmail)
+                ->replyTo($request->user()->email, $request->user()->name)
+                ->send(new BookingResponse(
+                    booking: $booking,
+                    clientName: $clientName ?: 'Valued Client',
+                    responseMessage: $validated['message'],
+                    senderName: $request->user()->name,
+                ));
+        } catch (\Exception $e) {
+            report($e);
+            return back()->with('error', 'Failed to send email. Please try again.');
+        }
+
+        return back()->with('success', 'Response sent to ' . $clientEmail);
+    }
+
     private function extractName(?string $notes): string
     {
+        return $this->extractField($notes, 'Name');
+    }
+
+    private function extractField(?string $notes, string $field): string
+    {
         if (!$notes) return '';
-        if (preg_match('/Name:\s*(.+)/i', $notes, $matches)) {
+        if (preg_match("/{$field}:\s*(.+)/i", $notes, $matches)) {
             return trim($matches[1]);
         }
         return '';

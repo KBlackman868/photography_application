@@ -9,7 +9,16 @@ interface Props extends PageProps {
 
 export default function PortfoliosIndex({ auth, portfolios }: Props) {
     const [showCreate, setShowCreate] = useState(false);
+    const [deleting, setDeleting] = useState<number | null>(null);
     const isAdmin = auth.user.role !== 'client';
+
+    const handleDelete = (portfolio: Portfolio) => {
+        if (!confirm(`Are you sure you want to delete "${portfolio.title}"? This cannot be undone.`)) return;
+        setDeleting(portfolio.id);
+        router.delete(`/portfolios/${portfolio.id}`, {
+            onFinish: () => setDeleting(null),
+        });
+    };
 
     const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
@@ -62,10 +71,13 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                                     ? (portfolio.cover_photo_path.startsWith('http') ? portfolio.cover_photo_path : `/storage/${portfolio.cover_photo_path}`)
                                     : null;
                                 return (
-                                    <a
+                                    <div
                                         key={portfolio.id}
+                                        className="group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all"
+                                    >
+                                    <a
                                         href={`/portfolios/${portfolio.id}/edit`}
-                                        className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-all cursor-pointer block no-underline text-inherit"
+                                        className="block no-underline text-inherit cursor-pointer"
                                     >
                                         <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
                                             {coverSrc ? (
@@ -107,6 +119,17 @@ export default function PortfoliosIndex({ auth, portfolios }: Props) {
                                             </div>
                                         </div>
                                     </a>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={() => handleDelete(portfolio)}
+                                            disabled={deleting === portfolio.id}
+                                            className="absolute top-3 left-3 w-8 h-8 bg-red-500/90 text-white rounded-full text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 disabled:opacity-50"
+                                            title="Delete portfolio"
+                                        >
+                                            <span className="material-symbols-outlined text-base">delete</span>
+                                        </button>
+                                    )}
+                                    </div>
                                 );
                             })}
                         </div>
