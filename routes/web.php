@@ -66,6 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/settings/logo', [SettingsController::class, 'deleteLogo'])->name('settings.logo.delete');
     Route::post('/settings/hero-images', [SettingsController::class, 'uploadHeroImages'])->name('settings.hero.upload');
     Route::delete('/settings/hero-images', [SettingsController::class, 'deleteHeroImage'])->name('settings.hero.delete');
+
+    // Packages (admin)
+    Route::post('/settings/packages', [SettingsController::class, 'storePackage'])->name('settings.packages.store');
+    Route::put('/settings/packages/{package}', [SettingsController::class, 'updatePackage'])->name('settings.packages.update');
+    Route::delete('/settings/packages/{package}', [SettingsController::class, 'deletePackage'])->name('settings.packages.delete');
 });
 
 require __DIR__.'/auth.php';

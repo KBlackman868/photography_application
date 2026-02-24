@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingConfirmation;
+use App\Mail\BookingNotification;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\Studio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class BookingController extends Controller
@@ -17,12 +20,14 @@ class BookingController extends Controller
     {
         $studio = Studio::first();
         $packages = Package::where('studio_id', $studio->id)
+            ->where('is_active', true)
             ->orderBy('sort_order')
             ->get();
 
         return Inertia::render('Bookings/Create', [
             'packages' => $packages,
             'studioName' => $studio->name,
+            'availabilityHours' => $studio->availability_hours,
         ]);
     }
 
@@ -55,6 +60,37 @@ class BookingController extends Controller
             'total_amount' => 0,
             'deposit_amount' => 0,
         ]);
+
+        // Load relationships for email
+        $booking->load(['studio', 'package']);
+
+        // Send confirmation email to client
+        try {
+            Mail::to($validated['email'])->send(new BookingConfirmation(
+                booking: $booking,
+                clientName: $validated['name'],
+                clientEmail: $validated['email'],
+            ));
+        } catch (\Exception $e) {
+            // Don't fail the booking if email fails
+            report($e);
+        }
+
+        // Send notification email to studio owner
+        if ($studio->email) {
+            try {
+                Mail::to($studio->email)->send(new BookingNotification(
+                    booking: $booking,
+                    clientName: $validated['name'],
+                    clientEmail: $validated['email'],
+                    clientPhone: $validated['phone'],
+                    sessionType: $validated['session_type'],
+                    message: $validated['message'] ?? null,
+                ));
+            } catch (\Exception $e) {
+                report($e);
+            }
+        }
 
         return redirect()->back()->with('success', 'Your booking request has been submitted! We\'ll be in touch within 24 hours.');
     }
@@ -121,7 +157,10 @@ class BookingController extends Controller
                 'status' => $b->status,
             ]);
 
-        return response()->json($bookings);
+        return response()->json([
+            'bookings' => $bookings,
+            'availability_hours' => $studio->availability_hours,
+        ]);
     }
 
     /**

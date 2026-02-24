@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Camera, ArrowLeft, Calendar, Clock, MapPin, CheckCircle } from 'lucide-react';
 
@@ -10,9 +10,14 @@ interface Package {
     type: string;
 }
 
+interface AvailabilityHours {
+    [day: string]: { start: string; end: string; enabled: boolean };
+}
+
 interface Props {
     packages: Package[];
     studioName: string;
+    availabilityHours: AvailabilityHours | null;
 }
 
 const SESSION_TYPES = [
@@ -27,12 +32,32 @@ const SESSION_TYPES = [
     'Other',
 ];
 
-const TIME_SLOTS = [
+const FALLBACK_TIME_SLOTS = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
     '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
     '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
     '17:00', '17:30', '18:00',
 ];
+
+// Map JS getDay() (0=Sun) to day names
+const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+function generateTimeSlots(start: string, end: string): string[] {
+    const slots: string[] = [];
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    let h = startH;
+    let m = startM;
+    while (h < endH || (h === endH && m <= endM)) {
+        slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        m += 30;
+        if (m >= 60) {
+            h += 1;
+            m = 0;
+        }
+    }
+    return slots;
+}
 
 interface BookedSlot {
     date: string;
@@ -40,9 +65,10 @@ interface BookedSlot {
     status: string;
 }
 
-export default function BookingCreate({ packages, studioName }: Props) {
+export default function BookingCreate({ packages, studioName, availabilityHours: initialAvailability }: Props) {
     const [submitted, setSubmitted] = useState(false);
     const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
+    const [availabilityHours, setAvailabilityHours] = useState<AvailabilityHours | null>(initialAvailability);
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
     const { data, setData, post, processing, errors } = useForm({
@@ -60,7 +86,12 @@ export default function BookingCreate({ packages, studioName }: Props) {
     useEffect(() => {
         fetch('/api/availability')
             .then((r) => r.json())
-            .then((d) => setBookedSlots(d))
+            .then((d) => {
+                setBookedSlots(d.bookings || d);
+                if (d.availability_hours) {
+                    setAvailabilityHours(d.availability_hours);
+                }
+            })
             .catch(() => {});
     }, []);
 
@@ -92,12 +123,34 @@ export default function BookingCreate({ packages, studioName }: Props) {
 
     const isDateFullyBooked = (dateStr: string) => {
         const bookings = getBookingsForDate(dateStr);
-        return bookings.length >= 4; // Max 4 sessions per day
+        return bookings.length >= 4;
     };
 
     const isTimeBooked = (dateStr: string, time: string) => {
         return bookedSlots.some((s) => s.date === dateStr && s.time === time);
     };
+
+    // Check if a date's day-of-week is available
+    const isDayAvailable = (dateStr: string) => {
+        if (!availabilityHours) return true;
+        const dateObj = new Date(dateStr + 'T12:00:00');
+        const dayName = DAY_NAMES[dateObj.getDay()];
+        const dayConfig = availabilityHours[dayName];
+        return dayConfig ? dayConfig.enabled : true;
+    };
+
+    // Get time slots for a selected date based on availability hours
+    const timeSlotsForDate = useMemo(() => {
+        if (!data.preferred_date) return FALLBACK_TIME_SLOTS;
+        if (!availabilityHours) return FALLBACK_TIME_SLOTS;
+
+        const dateObj = new Date(data.preferred_date + 'T12:00:00');
+        const dayName = DAY_NAMES[dateObj.getDay()];
+        const dayConfig = availabilityHours[dayName];
+
+        if (!dayConfig || !dayConfig.enabled) return [];
+        return generateTimeSlots(dayConfig.start, dayConfig.end);
+    }, [data.preferred_date, availabilityHours]);
 
     if (submitted) {
         return (
@@ -111,9 +164,12 @@ export default function BookingCreate({ packages, studioName }: Props) {
                         <h1 className="font-display text-3xl font-bold text-slate-900 dark:text-white mb-3">
                             Booking Request Sent!
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mb-8">
+                        <p className="text-slate-500 dark:text-slate-400 mb-3">
                             Thank you for your interest! I'll review your request and get back to you within 24 hours
                             to confirm your session details.
+                        </p>
+                        <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm">
+                            A confirmation email has been sent to your inbox.
                         </p>
                         <Link
                             href="/"
@@ -138,7 +194,7 @@ export default function BookingCreate({ packages, studioName }: Props) {
                     <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-2">
                             <Camera className="w-5 h-5 text-slate-900 dark:text-white" />
-                            <span className="font-display font-bold text-sm dark:text-white">Kyle Blackman Photography</span>
+                            <span className="font-display font-bold text-sm dark:text-white">{studioName}</span>
                         </Link>
                         <Link href="/" className="text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white">
                             Back to site
@@ -192,14 +248,19 @@ export default function BookingCreate({ packages, studioName }: Props) {
                                         const isSelected = data.preferred_date === dateStr;
                                         const isFullyBooked = isDateFullyBooked(dateStr);
                                         const hasBookings = getBookingsForDate(dateStr).length > 0;
-                                        const isDisabled = isPast || isFullyBooked;
+                                        const dayUnavailable = !isDayAvailable(dateStr);
+                                        const isDisabled = isPast || isFullyBooked || dayUnavailable;
 
                                         return (
                                             <button
                                                 key={day}
                                                 type="button"
                                                 disabled={isDisabled}
-                                                onClick={() => setData('preferred_date', dateStr)}
+                                                onClick={() => {
+                                                    setData('preferred_date', dateStr);
+                                                    // Reset time when date changes
+                                                    setData('preferred_time', '');
+                                                }}
                                                 className={`aspect-square rounded-lg text-sm font-medium transition-all relative ${
                                                     isSelected
                                                         ? 'bg-primary text-white'
@@ -209,7 +270,7 @@ export default function BookingCreate({ packages, studioName }: Props) {
                                                 }`}
                                             >
                                                 {day}
-                                                {hasBookings && !isSelected && !isFullyBooked && (
+                                                {hasBookings && !isSelected && !isFullyBooked && !dayUnavailable && (
                                                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-amber-400" />
                                                 )}
                                                 {isFullyBooked && !isPast && (
@@ -240,29 +301,33 @@ export default function BookingCreate({ packages, studioName }: Props) {
                                             <Clock className="w-4 h-4 text-slate-400" />
                                             Available Times
                                         </h4>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {TIME_SLOTS.map((time) => {
-                                                const booked = isTimeBooked(data.preferred_date, time);
-                                                const isSelected = data.preferred_time === time;
-                                                return (
-                                                    <button
-                                                        key={time}
-                                                        type="button"
-                                                        disabled={booked}
-                                                        onClick={() => setData('preferred_time', time)}
-                                                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                                                            isSelected
-                                                                ? 'bg-primary text-white'
-                                                                : booked
-                                                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed line-through'
-                                                                : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                                        }`}
-                                                    >
-                                                        {time}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                        {timeSlotsForDate.length === 0 ? (
+                                            <p className="text-sm text-slate-400">No available times for this date.</p>
+                                        ) : (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {timeSlotsForDate.map((time) => {
+                                                    const booked = isTimeBooked(data.preferred_date, time);
+                                                    const isSelected = data.preferred_time === time;
+                                                    return (
+                                                        <button
+                                                            key={time}
+                                                            type="button"
+                                                            disabled={booked}
+                                                            onClick={() => setData('preferred_time', time)}
+                                                            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                                                isSelected
+                                                                    ? 'bg-primary text-white'
+                                                                    : booked
+                                                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed line-through'
+                                                                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                                            }`}
+                                                        >
+                                                            {time}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -354,7 +419,7 @@ export default function BookingCreate({ packages, studioName }: Props) {
                                                 className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-primary"
                                             >
                                                 <option value="">Select time...</option>
-                                                {TIME_SLOTS.map((t) => (
+                                                {timeSlotsForDate.map((t) => (
                                                     <option
                                                         key={t}
                                                         value={t}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Package;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -36,6 +37,7 @@ class SettingsController extends Controller
             'social_links' => 'nullable|array',
             'social_links.instagram' => 'nullable|string|max:255',
             'social_links.facebook' => 'nullable|string|max:255',
+            'availability_hours' => 'nullable|array',
         ]);
 
         $studio = $request->user()->studio;
@@ -47,12 +49,11 @@ class SettingsController extends Controller
     public function uploadLogo(Request $request)
     {
         $request->validate([
-            'logo' => 'required|image|max:5120', // 5MB max
+            'logo' => 'required|image|max:5120',
         ]);
 
         $studio = $request->user()->studio;
 
-        // Delete old logo if it exists
         if ($studio->logo_path) {
             Storage::disk('public')->delete($studio->logo_path);
         }
@@ -79,7 +80,7 @@ class SettingsController extends Controller
     {
         $request->validate([
             'hero_images' => 'required|array|min:1|max:10',
-            'hero_images.*' => 'required|image|max:20480', // 20MB max per image
+            'hero_images.*' => 'required|image|max:20480',
         ]);
 
         $studio = $request->user()->studio;
@@ -112,5 +113,49 @@ class SettingsController extends Controller
         }
 
         return back()->with('success', 'Hero image removed.');
+    }
+
+    public function storePackage(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'price' => 'required|numeric|min:0',
+            'type' => 'required|string|max:100',
+            'includes' => 'nullable|array',
+        ]);
+
+        $studio = $request->user()->studio;
+        $maxSort = $studio->packages()->max('sort_order') ?? 0;
+
+        $studio->packages()->create([
+            ...$validated,
+            'sort_order' => $maxSort + 1,
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'Package created.');
+    }
+
+    public function updatePackage(Request $request, Package $package)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'price' => 'required|numeric|min:0',
+            'type' => 'required|string|max:100',
+            'includes' => 'nullable|array',
+        ]);
+
+        $package->update($validated);
+
+        return back()->with('success', 'Package updated.');
+    }
+
+    public function deletePackage(Request $request, Package $package)
+    {
+        $package->delete();
+
+        return back()->with('success', 'Package deleted.');
     }
 }

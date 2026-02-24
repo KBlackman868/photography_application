@@ -24,6 +24,7 @@ class Studio extends Model
         'payment_settings',
         'hero_images',
         'social_links',
+        'availability_hours',
         'timezone',
     ];
 
@@ -35,6 +36,7 @@ class Studio extends Model
             'payment_settings' => 'array',
             'hero_images' => 'array',
             'social_links' => 'array',
+            'availability_hours' => 'array',
         ];
     }
 

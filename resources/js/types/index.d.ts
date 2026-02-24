@@ -35,6 +35,9 @@ export interface Studio {
         instagram?: string;
         facebook?: string;
     };
+    availability_hours?: {
+        [day: string]: { start: string; end: string; enabled: boolean };
+    };
     timezone: string;
 }
 
