@@ -49,6 +49,10 @@ class PortfolioPhoto extends Model implements HasMedia
 
     /* ── Accessors ── */
 
+    /**
+     * Best available URL for the photo at display resolution.
+     * Falls back through: Spatie conversion → Spatie original → disk path.
+     */
     public function getDisplayUrlAttribute(): ?string
     {
         $media = $this->getFirstMedia('photo');
@@ -60,9 +64,17 @@ class PortfolioPhoto extends Model implements HasMedia
             return $media->getUrl();
         }
 
-        return $this->display_path ? '/storage/' . $this->display_path : null;
+        if ($this->display_path) {
+            return '/storage/' . $this->display_path;
+        }
+
+        return $this->photo_path ? '/storage/' . $this->photo_path : null;
     }
 
+    /**
+     * Best available URL for the photo at thumbnail resolution.
+     * Falls back through: Spatie conversion → Spatie original → disk path.
+     */
     public function getThumbUrlAttribute(): ?string
     {
         $media = $this->getFirstMedia('photo');
@@ -74,7 +86,11 @@ class PortfolioPhoto extends Model implements HasMedia
             return $media->getUrl();
         }
 
-        return $this->thumb_path ? '/storage/' . $this->thumb_path : null;
+        if ($this->thumb_path) {
+            return '/storage/' . $this->thumb_path;
+        }
+
+        return $this->photo_path ? '/storage/' . $this->photo_path : null;
     }
 
     public function getOriginalUrlAttribute(): ?string
