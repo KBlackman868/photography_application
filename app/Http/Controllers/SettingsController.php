@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class SettingsController extends Controller
@@ -32,11 +33,84 @@ class SettingsController extends Controller
             'watermark_settings' => 'nullable|array',
             'watermark_settings.position' => 'nullable|in:top-left,top-right,bottom-left,bottom-right,center',
             'watermark_settings.opacity' => 'nullable|integer|between:0,100',
+            'social_links' => 'nullable|array',
+            'social_links.instagram' => 'nullable|string|max:255',
+            'social_links.facebook' => 'nullable|string|max:255',
         ]);
 
         $studio = $request->user()->studio;
         $studio->update($validated);
 
         return back()->with('success', 'Settings updated.');
+    }
+
+    public function uploadLogo(Request $request)
+    {
+        $request->validate([
+            'logo' => 'required|image|max:5120', // 5MB max
+        ]);
+
+        $studio = $request->user()->studio;
+
+        // Delete old logo if it exists
+        if ($studio->logo_path) {
+            Storage::disk('public')->delete($studio->logo_path);
+        }
+
+        $path = $request->file('logo')->store('studio/logo', 'public');
+        $studio->update(['logo_path' => $path]);
+
+        return back()->with('success', 'Logo updated.');
+    }
+
+    public function deleteLogo(Request $request)
+    {
+        $studio = $request->user()->studio;
+
+        if ($studio->logo_path) {
+            Storage::disk('public')->delete($studio->logo_path);
+            $studio->update(['logo_path' => null]);
+        }
+
+        return back()->with('success', 'Logo removed.');
+    }
+
+    public function uploadHeroImages(Request $request)
+    {
+        $request->validate([
+            'hero_images' => 'required|array|min:1|max:10',
+            'hero_images.*' => 'required|image|max:20480', // 20MB max per image
+        ]);
+
+        $studio = $request->user()->studio;
+        $existing = $studio->hero_images ?? [];
+
+        foreach ($request->file('hero_images') as $file) {
+            $path = $file->store('studio/hero', 'public');
+            $existing[] = $path;
+        }
+
+        $studio->update(['hero_images' => $existing]);
+
+        return back()->with('success', 'Hero images uploaded.');
+    }
+
+    public function deleteHeroImage(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer|min:0',
+        ]);
+
+        $studio = $request->user()->studio;
+        $images = $studio->hero_images ?? [];
+        $index = $request->input('index');
+
+        if (isset($images[$index])) {
+            Storage::disk('public')->delete($images[$index]);
+            array_splice($images, $index, 1);
+            $studio->update(['hero_images' => $images]);
+        }
+
+        return back()->with('success', 'Hero image removed.');
     }
 }

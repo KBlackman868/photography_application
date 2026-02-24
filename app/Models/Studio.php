@@ -22,6 +22,8 @@ class Studio extends Model
         'branding',
         'watermark_settings',
         'payment_settings',
+        'hero_images',
+        'social_links',
         'timezone',
     ];
 
@@ -31,6 +33,8 @@ class Studio extends Model
             'branding' => 'array',
             'watermark_settings' => 'array',
             'payment_settings' => 'array',
+            'hero_images' => 'array',
+            'social_links' => 'array',
         ];
     }
 

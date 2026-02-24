@@ -30,6 +30,11 @@ export interface Studio {
         position?: string;
         opacity?: number;
     };
+    hero_images?: string[];
+    social_links?: {
+        instagram?: string;
+        facebook?: string;
+    };
     timezone: string;
 }
 

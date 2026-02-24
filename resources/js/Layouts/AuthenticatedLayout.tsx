@@ -9,8 +9,10 @@ export default function Authenticated({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-    const user = usePage().props.auth.user as any;
+    const page = usePage().props as any;
+    const user = page.auth.user;
     const isAdmin = user.role !== 'client';
+    const studioLogo = page.studio_logo as string | null;
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
@@ -23,9 +25,17 @@ export default function Authenticated({
                     <div className="flex h-16 justify-between">
                         <div className="flex items-center">
                             <Link href="/dashboard" className="flex items-center gap-3">
-                                <div className="bg-primary text-white p-2 rounded-lg">
-                                    <span className="material-symbols-outlined text-lg block">photo_camera</span>
-                                </div>
+                                {studioLogo ? (
+                                    <img
+                                        src={studioLogo.startsWith('http') ? studioLogo : `/storage/${studioLogo}`}
+                                        alt="Logo"
+                                        className="w-9 h-9 rounded-lg object-contain"
+                                    />
+                                ) : (
+                                    <div className="bg-primary text-white p-2 rounded-lg">
+                                        <span className="material-symbols-outlined text-lg block">photo_camera</span>
+                                    </div>
+                                )}
                                 <div>
                                     <h1 className="font-bold text-sm tracking-tight">Kyle Blackman Photography</h1>
                                     <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">

@@ -3,7 +3,6 @@ import { Head, Link } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useTextScramble } from '@/hooks/useTextScramble';
-import { useCursorFloat } from '@/hooks/useCursorFloat';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -22,6 +21,12 @@ interface StudioData {
     description?: string;
     email?: string;
     phone?: string;
+    logo_path?: string;
+    hero_images?: string[];
+    social_links?: {
+        instagram?: string;
+        facebook?: string;
+    };
 }
 
 interface WelcomeProps extends PageProps {
@@ -121,11 +126,6 @@ export default function Welcome({
     /* ── Text scramble for hero title ── */
     const { text: scrambledName, done: scrambleDone } = useTextScramble('Kyle Blackman', 1800, 35);
 
-    /* ── Cursor float ── */
-    const { floatRef, cursorText, setCursorText, visible: cursorVisible } = useCursorFloat({
-        defaultText: 'Scroll \u2193',
-    });
-
     /* ── Scroll zoom effect refs + state ── */
     const heroRef = useRef<HTMLElement>(null);
     const heroBgRef = useRef<HTMLDivElement>(null);
@@ -217,6 +217,10 @@ export default function Welcome({
 
     /* ── Build hero background image ── */
     const heroImage = (() => {
+        // Use admin-uploaded hero image first
+        if (studio?.hero_images && studio.hero_images.length > 0) {
+            return imgSrc(studio.hero_images[0]);
+        }
         if (portfolios.length > 0) {
             const first = portfolios[0];
             if (first.cover_photo_path) return imgSrc(first.cover_photo_path);
@@ -290,15 +294,6 @@ export default function Welcome({
                 />
             </Head>
 
-            {/* ===================== CURSOR FLOAT ===================== */}
-            <div
-                ref={floatRef}
-                className="cursor-float"
-                style={{ opacity: cursorVisible ? 1 : 0 }}
-            >
-                {cursorText}
-            </div>
-
             {/* ======================== NAVBAR ======================== */}
             <header
                 className={`fixed top-0 w-full z-50 transition-all duration-500 ${
@@ -309,9 +304,17 @@ export default function Welcome({
             >
                 <nav className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 flex items-center justify-between h-20">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center group-hover:bg-accent/20 transition-colors duration-300">
-                            <CameraIcon className="w-5 h-5 text-accent" />
-                        </div>
+                        {studio?.logo_path ? (
+                            <img
+                                src={imgSrc(studio.logo_path)}
+                                alt="Logo"
+                                className="w-10 h-10 rounded-lg object-contain"
+                            />
+                        ) : (
+                            <div className="w-10 h-10 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center group-hover:bg-accent/20 transition-colors duration-300">
+                                <CameraIcon className="w-5 h-5 text-accent" />
+                            </div>
+                        )}
                         <div>
                             <span className="font-display font-bold text-white text-sm tracking-tight">Kyle Blackman</span>
                             <span className="block text-[10px] text-accent/80 uppercase tracking-[0.2em] font-medium">Photography</span>
@@ -431,7 +434,6 @@ export default function Welcome({
                 <section
                     ref={heroRef}
                     className="relative h-screen flex items-center justify-center overflow-hidden"
-                    onMouseEnter={() => setCursorText('Scroll \u2193')}
                 >
                     {/* Background with scroll zoom */}
                     <div ref={heroBgRef} className="absolute inset-0 will-change-transform origin-center">
@@ -488,15 +490,6 @@ export default function Welcome({
                         <div aria-hidden="true" />
                     </div>
 
-                    {/* Scroll indicator */}
-                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10">
-                        <div className="animate-bounce-gentle flex flex-col items-center gap-3">
-                            <span className="text-[10px] text-white/30 uppercase tracking-[0.3em]">Scroll</span>
-                            <svg className="w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                            </svg>
-                        </div>
-                    </div>
                 </section>
 
                 {/* ============== 2. SMOOTH TABS — Category Filter ============== */}
@@ -551,8 +544,6 @@ export default function Welcome({
                 {/* ============== 3. PORTFOLIO GRID — Floating Hover ============== */}
                 <section
                     className="pb-24 md:pb-36 px-4 md:px-8 lg:px-16"
-                    onMouseEnter={() => setCursorText('View \u2726')}
-                    onMouseLeave={() => setCursorText('Scroll \u2193')}
                 >
                     <div className="max-w-7xl mx-auto">
                         <div ref={portfolioGridRef} className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -642,8 +633,6 @@ export default function Welcome({
                                 <Link
                                     href="/book"
                                     className="group inline-flex items-center gap-3 text-accent text-sm font-semibold uppercase tracking-[0.2em] hover:gap-4 transition-all duration-300 min-h-[44px]"
-                                    onMouseEnter={() => setCursorText('Book \u2192')}
-                                    onMouseLeave={() => setCursorText('Scroll \u2193')}
                                 >
                                     Let's Work Together
                                     <ArrowIcon />
@@ -690,8 +679,6 @@ export default function Welcome({
                     style={{
                         backgroundImage: `url('https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80')`,
                     }}
-                    onMouseEnter={() => setCursorText('Book \u2192')}
-                    onMouseLeave={() => setCursorText('Scroll \u2193')}
                 >
                     {/* Dark overlay */}
                     <div className="absolute inset-0 bg-primary/80" />
@@ -733,9 +720,17 @@ export default function Welcome({
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         {/* Brand */}
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center">
-                                <CameraIcon className="w-4 h-4 text-accent" />
-                            </div>
+                            {studio?.logo_path ? (
+                                <img
+                                    src={imgSrc(studio.logo_path)}
+                                    alt="Logo"
+                                    className="w-9 h-9 rounded-lg object-contain"
+                                />
+                            ) : (
+                                <div className="w-9 h-9 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center">
+                                    <CameraIcon className="w-4 h-4 text-accent" />
+                                </div>
+                            )}
                             <span className="font-display font-bold text-sm text-white/60 tracking-tight">
                                 Kyle Blackman Photography
                             </span>
@@ -759,7 +754,9 @@ export default function Welcome({
                         {/* Social links */}
                         <div className="flex items-center gap-5">
                             <a
-                                href="#"
+                                href={`https://instagram.com/${studio?.social_links?.instagram || 'kyleblackmanphotography_'}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="text-white/30 hover:text-accent transition-colors duration-300 min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
                                 aria-label="Instagram"
                             >
@@ -767,15 +764,19 @@ export default function Welcome({
                                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
                                 </svg>
                             </a>
-                            <a
-                                href="#"
-                                className="text-white/30 hover:text-accent transition-colors duration-300 min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
-                                aria-label="Facebook"
-                            >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                                </svg>
-                            </a>
+                            {studio?.social_links?.facebook && (
+                                <a
+                                    href={studio.social_links.facebook}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-white/30 hover:text-accent transition-colors duration-300 min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
+                                    aria-label="Facebook"
+                                >
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                    </svg>
+                                </a>
+                            )}
                             <a
                                 href={`mailto:${studio?.email || 'kyle@kyleblackmanphoto.com'}`}
                                 className="text-white/30 hover:text-accent transition-colors duration-300 min-w-[44px] min-h-[44px] inline-flex items-center justify-center"

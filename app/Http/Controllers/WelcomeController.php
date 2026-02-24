@@ -46,6 +46,9 @@ class WelcomeController extends Controller
                 'description' => $studio->description,
                 'email' => $studio->email,
                 'phone' => $studio->phone,
+                'logo_path' => $studio->logo_path,
+                'hero_images' => $studio->hero_images,
+                'social_links' => $studio->social_links,
             ] : null,
         ]);
     }

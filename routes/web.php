@@ -62,6 +62,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Settings (admin only)
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings/studio', [SettingsController::class, 'updateStudio'])->name('settings.studio.update');
+    Route::post('/settings/logo', [SettingsController::class, 'uploadLogo'])->name('settings.logo.upload');
+    Route::delete('/settings/logo', [SettingsController::class, 'deleteLogo'])->name('settings.logo.delete');
+    Route::post('/settings/hero-images', [SettingsController::class, 'uploadHeroImages'])->name('settings.hero.upload');
+    Route::delete('/settings/hero-images', [SettingsController::class, 'deleteHeroImage'])->name('settings.hero.delete');
 });
 
 require __DIR__.'/auth.php';
