@@ -133,7 +133,7 @@ export default function PublicPortfolio({ portfolios }: Props) {
                                                     >
                                                         <div className={`aspect-square bg-slate-100 ${index === 0 ? 'md:aspect-auto md:h-full' : ''}`}>
                                                             <img
-                                                                src={photo.photo_path.startsWith('http') ? photo.photo_path : `/storage/${photo.photo_path}`}
+                                                                src={photo.display_url || photo.original_url || (photo.photo_path ? `/storage/${photo.photo_path}` : '')}
                                                                 alt={photo.caption || portfolio.title}
                                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                                 loading="lazy"

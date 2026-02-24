@@ -186,11 +186,14 @@ export interface Portfolio {
 
 export interface PortfolioPhoto {
     id: number;
-    photo_path: string;
+    photo_path?: string;
     display_path?: string;
     thumb_path?: string;
     caption?: string;
     sort_order: number;
+    display_url?: string;
+    thumb_url?: string;
+    original_url?: string;
 }
 
 export interface ClientProfile {

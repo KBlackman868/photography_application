@@ -117,12 +117,13 @@ export default function PortfolioEdit({ portfolio }: Props) {
                             {photos.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {photos.map((photo) => {
-                                        const isCover = portfolio.cover_photo_path === photo.photo_path;
+                                        const photoSrc = photo.thumb_url || photo.display_url || photo.original_url || (photo.photo_path ? `/storage/${photo.photo_path}` : '');
+                                        const isCover = portfolio.cover_photo_path === photo.thumb_url || portfolio.cover_photo_path === photo.photo_path;
                                         return (
                                             <div key={photo.id} className="group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                                                 <div className="aspect-square overflow-hidden">
                                                     <img
-                                                        src={photo.photo_path.startsWith('http') ? photo.photo_path : `/storage/${photo.photo_path}`}
+                                                        src={photoSrc}
                                                         alt={photo.caption || 'Portfolio photo'}
                                                         className="w-full h-full object-cover"
                                                         loading="lazy"

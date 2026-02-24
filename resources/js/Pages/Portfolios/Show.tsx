@@ -62,7 +62,7 @@ export default function PortfolioShow({ portfolio }: Props) {
                                 {portfolio.portfolio_photos.map((photo) => (
                                     <div key={photo.id} className="break-inside-avoid group relative overflow-hidden rounded-xl">
                                         <img
-                                            src={photo.photo_path.startsWith('http') ? photo.photo_path : `/storage/${photo.photo_path}`}
+                                            src={photo.display_url || photo.original_url || (photo.photo_path ? `/storage/${photo.photo_path}` : '')}
                                             alt={photo.caption || portfolio.title}
                                             className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             loading="lazy"
