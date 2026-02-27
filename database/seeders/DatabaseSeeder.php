@@ -21,10 +21,28 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+/**
+ * DatabaseSeeder — Populates the app with realistic sample data so you can see
+ * how everything looks and works right after installation.
+ *
+ * What gets created:
+ *   - 1 studio (the photography business itself, with branding & settings)
+ *   - 1 admin, 1 editor, and 5 client users
+ *   - 4 service packages (Mini Session → Wedding Premium)
+ *   - 4 projects with galleries full of placeholder photos
+ *   - Client favorites, threaded comments, internal editor notes
+ *   - Photo selections (clients picking their favorite shots)
+ *   - 3 portfolios (Weddings, Portraits, Events) for the public site
+ *   - 1 booking with a contract and invoice
+ *   - Spatie roles & permissions for access control
+ *
+ * Run with: php artisan db:seed
+ */
 class DatabaseSeeder extends Seeder
 {
     /**
      * Generate a placeholder image locally using GD.
+     * (Creates a colored rectangle with a dimensions label — stands in for real photos.)
      */
     private function generatePlaceholder(string $storagePath, int $width, int $height, int $seed): string
     {
@@ -86,12 +104,14 @@ class DatabaseSeeder extends Seeder
         ];
     }
 
+    /** The main seeder — creates everything the app needs to demo properly. */
     public function run(): void
     {
-        // Clean up old placeholder images
+        // Start fresh — remove any old placeholder images from previous seeds
         Storage::disk('public')->deleteDirectory('galleries');
         Storage::disk('public')->deleteDirectory('portfolios');
-        // Create studio
+
+        // Create the studio (your photography business)
         $studio = Studio::create([
             'name' => 'Kyle Blackman Photography',
             'slug' => 'kyle-blackman-photography',
@@ -111,7 +131,7 @@ class DatabaseSeeder extends Seeder
             ],
         ]);
 
-        // Create admin/photographer (primary account)
+        // Create the studio owner / main photographer — this is the primary admin account
         $admin = User::factory()->create([
             'name' => 'Kyle Blackman',
             'email' => 'kjrblackman@gmail.com',
@@ -122,7 +142,7 @@ class DatabaseSeeder extends Seeder
             'bio' => 'Professional photographer specializing in family, wedding, and portrait photography.',
         ]);
 
-        // Create editor
+        // Create a photo editor — a team member who helps with retouching and leaves internal notes
         $editor = User::factory()->create([
             'name' => 'Marcus Rivera',
             'email' => 'marcus@kyleblackmanphoto.com',
@@ -132,7 +152,7 @@ class DatabaseSeeder extends Seeder
             'bio' => 'Photo editor specializing in color grading and retouching.',
         ]);
 
-        // Create clients with profiles
+        // Create five sample clients — each with a profile that stores their preferences and notes
         $clients = [];
         $clientData = [
             ['name' => 'Emily Miller', 'email' => 'emily@millers.com', 'company' => null, 'notes' => 'Prefers warm tones. Family of four - two kids under 10.'],
@@ -163,7 +183,7 @@ class DatabaseSeeder extends Seeder
             $clients[] = $client;
         }
 
-        // Create packages
+        // Create service packages — these are the pricing tiers clients choose from when booking
         $packageData = [
             ['name' => 'Mini Session', 'price' => 350, 'type' => 'mini_session', 'description' => '20 minutes, 1 location, 15 edited images', 'includes' => ['minutes' => 20, 'locations' => 1, 'edited_images' => 15]],
             ['name' => 'Portrait Collection', 'price' => 750, 'type' => 'portrait', 'description' => '60 minutes, 2 locations, 40 edited images, online gallery', 'includes' => ['minutes' => 60, 'locations' => 2, 'edited_images' => 40, 'online_gallery' => true]],
@@ -183,7 +203,7 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // Create projects with galleries and photos
+        // Create sample projects — each represents a real photography job with its own gallery of photos
         $projectData = [
             [
                 'name' => 'The Miller Family Session',
@@ -425,7 +445,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Create portfolios
+        // Create public portfolios — these showcase the best work on the public website
         $portfolioData = [
             ['title' => 'Weddings', 'category' => 'wedding', 'description' => 'Timeless love stories captured with elegance and emotion.'],
             ['title' => 'Portraits', 'category' => 'portrait', 'description' => 'Authentic portraits that celebrate individuality and connection.'],
@@ -462,7 +482,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Create a booking with contract and invoice
+        // Create a sample booking with a signed contract and paid invoice (to demonstrate the full workflow)
         $booking = Booking::create([
             'studio_id' => $studio->id,
             'project_id' => Project::first()->id,
@@ -501,7 +521,7 @@ class DatabaseSeeder extends Seeder
             ],
         ]);
 
-        // Create Spatie roles
+        // Set up the role-based permission system — admins can do everything, editors can manage photos, clients can view/comment
         $this->createRolesAndPermissions();
 
         echo "Seeded successfully!\n";
@@ -510,6 +530,13 @@ class DatabaseSeeder extends Seeder
         echo "Client login: emily@millers.com / password\n";
     }
 
+    /**
+     * Set up Spatie roles and permissions.
+     * This defines WHO can do WHAT in the application:
+     *   - Admin: full access to everything
+     *   - Editor: manage photos, comments, exports (but not clients or settings)
+     *   - Client: view galleries, comment on photos, favorite, submit selections
+     */
     private function createRolesAndPermissions(): void
     {
         $roles = ['admin', 'photographer', 'editor', 'client'];

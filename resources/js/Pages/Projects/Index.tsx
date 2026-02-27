@@ -7,6 +7,9 @@ interface Props extends PageProps {
     projects: { data: Project[] };
 }
 
+// Admin project list with an inline quick-create modal for new shoots.
+// Each row shows project type, client, status, gallery count, and shoot date.
+
 export default function ProjectsIndex({ auth, projects }: Props) {
     const projectList = projects.data || [];
     const [showCreate, setShowCreate] = useState(false);

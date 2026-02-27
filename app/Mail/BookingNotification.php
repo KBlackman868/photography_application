@@ -9,6 +9,11 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Sent to the studio/photographer when a new booking request comes in from the website.
+ * Includes the client's contact info, desired session type, and any message they wrote,
+ * so the photographer can respond quickly and not miss a lead.
+ */
 class BookingNotification extends Mailable
 {
     use Queueable, SerializesModels;

@@ -13,10 +13,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
+/**
+ * Booking Controller
+ *
+ * Manages the complete booking lifecycle for the photography studio, from the
+ * moment a potential client fills out the public inquiry form through to session
+ * completion. This is the lead generation and scheduling backbone of the business.
+ *
+ * The booking flow:
+ *   1. Client submits public form -> booking created as "inquiry"
+ *   2. Both client and studio receive email notifications
+ *   3. Admin manages bookings via list view or calendar
+ *   4. Status advances: inquiry -> quoted -> confirmed -> deposit_paid -> completed
+ *   5. Admin can reply directly to clients via email from the booking page
+ *   6. Clients can check their booking status using a reference number
+ */
 class BookingController extends Controller
 {
     /**
-     * Public booking form
+     * Show the public booking request form.
+     * This is the page potential clients land on when they want to book a session.
+     * It loads the studio's active packages so clients can optionally select one,
+     * and passes availability hours so the frontend can suggest open time slots.
      */
     public function create()
     {
@@ -34,7 +52,12 @@ class BookingController extends Controller
     }
 
     /**
-     * Store a new booking request (public)
+     * Process a new booking request from the public form.
+     * Creates the booking as an "inquiry" (the first stage in the pipeline) and
+     * sends two emails: a confirmation to the client so they know their request
+     * was received, and a notification to the studio owner so the lead is not missed.
+     * Client details are stored in the notes field as a structured text block
+     * since public submissions don't require an account.
      */
     public function store(Request $request)
     {
@@ -52,6 +75,8 @@ class BookingController extends Controller
 
         $studio = Studio::first();
 
+        // Store client contact info in the notes field since public bookings
+        // don't require the client to have an account
         $booking = Booking::create([
             'studio_id' => $studio->id,
             'status' => 'inquiry',
@@ -66,7 +91,8 @@ class BookingController extends Controller
         // Load relationships for email
         $booking->load(['studio', 'package']);
 
-        // Send confirmation email to client
+        // Send confirmation email to the client so they know their
+        // inquiry was received and the studio will be in touch
         try {
             Mail::to($validated['email'])->send(new BookingConfirmation(
                 booking: $booking,
@@ -77,7 +103,8 @@ class BookingController extends Controller
             report($e);
         }
 
-        // Send notification email to studio owner
+        // Notify the studio owner about the new lead so they can
+        // follow up quickly -- fast response times win more bookings
         if ($studio->email) {
             try {
                 Mail::to($studio->email)->send(new BookingNotification(
@@ -97,7 +124,9 @@ class BookingController extends Controller
     }
 
     /**
-     * Admin: list all bookings
+     * Admin: list all bookings for the studio.
+     * Shows every booking with client details and package info, sorted by
+     * session date so the photographer can see their upcoming schedule.
      */
     public function index(Request $request)
     {
@@ -115,7 +144,10 @@ class BookingController extends Controller
     }
 
     /**
-     * Admin: calendar view
+     * Admin: visual calendar view of all bookings.
+     * Displays sessions on a calendar so the photographer can see their
+     * schedule at a glance and spot conflicts or busy periods. Cancelled
+     * bookings are excluded to keep the calendar clean.
      */
     public function calendar(Request $request)
     {
@@ -128,6 +160,7 @@ class BookingController extends Controller
             ->map(function ($booking) {
                 return [
                     'id' => $booking->id,
+                    // Extract the client name from notes to display on the calendar
                     'title' => $this->extractName($booking->notes) ?: 'Booking #' . $booking->id,
                     'session_date' => $booking->session_date?->toISOString(),
                     'status' => $booking->status,
@@ -142,7 +175,9 @@ class BookingController extends Controller
     }
 
     /**
-     * API: get booked dates for availability checking
+     * Public API: returns booked dates for the availability checker.
+     * The public booking form uses this to show which dates/times are already
+     * taken, helping clients pick an available slot without back-and-forth.
      */
     public function availability(Request $request)
     {
@@ -165,7 +200,11 @@ class BookingController extends Controller
     }
 
     /**
-     * Admin: update booking status (sends status update email to client)
+     * Admin: update a booking's status.
+     * Advances the booking through the pipeline (inquiry -> quoted -> confirmed
+     * -> deposit_paid -> completed, or cancelled at any stage). Automatically
+     * sends a status update email to the client so they stay informed without
+     * the photographer having to manually notify them.
      */
     public function update(Request $request, Booking $booking)
     {
@@ -178,7 +217,8 @@ class BookingController extends Controller
 
         $booking->update($validated);
 
-        // Send status update email to client if status actually changed
+        // Only send an email if the status actually changed -- avoids
+        // duplicate notifications if the form is submitted twice
         if ($oldStatus !== $newStatus) {
             $clientEmail = $this->extractField($booking->notes, 'Email');
             $clientName = $this->extractField($booking->notes, 'Name');
@@ -202,7 +242,10 @@ class BookingController extends Controller
     }
 
     /**
-     * Admin: send a reply/response to a client
+     * Admin: send a personal reply/message to the client about their booking.
+     * This lets the photographer respond to inquiries, send quotes, or answer
+     * questions directly from the booking management page. The reply-to header
+     * is set to the photographer's email so the client can respond naturally.
      */
     public function reply(Request $request, Booking $booking)
     {
@@ -210,6 +253,7 @@ class BookingController extends Controller
             'message' => 'required|string|max:5000',
         ]);
 
+        // Extract the client's email from the booking notes
         $clientEmail = $this->extractField($booking->notes, 'Email');
         $clientName = $this->extractField($booking->notes, 'Name');
 
@@ -237,7 +281,9 @@ class BookingController extends Controller
     }
 
     /**
-     * Public: booking status lookup page
+     * Public: show the booking status lookup page.
+     * Clients who submitted a booking can check on its status without
+     * needing to create an account or log in.
      */
     public function statusLookup()
     {
@@ -245,7 +291,10 @@ class BookingController extends Controller
     }
 
     /**
-     * Public: check booking status by reference number + email
+     * Public: verify a booking's status using reference number and email.
+     * This provides a simple, secure way for clients to track their booking.
+     * The email check ensures only the original requester can view the status,
+     * preventing unauthorized lookups by guessing reference numbers.
      */
     public function statusCheck(Request $request)
     {
@@ -260,12 +309,13 @@ class BookingController extends Controller
             return back()->with('error', 'No booking found with that reference number.');
         }
 
-        // Verify email matches
+        // Verify email matches to prevent unauthorized status lookups
         $bookingEmail = $this->extractField($booking->notes, 'Email');
         if (strtolower($bookingEmail) !== strtolower($validated['email'])) {
             return back()->with('error', 'The email address does not match our records for this booking.');
         }
 
+        // Human-friendly status labels for the client-facing display
         $statusLabels = [
             'inquiry' => 'Inquiry Received',
             'quoted' => 'Quote Sent',
@@ -287,11 +337,19 @@ class BookingController extends Controller
         ]);
     }
 
+    /**
+     * Helper: extract the client name from the structured notes field.
+     */
     private function extractName(?string $notes): string
     {
         return $this->extractField($notes, 'Name');
     }
 
+    /**
+     * Helper: parse a specific field value from the "Key: Value" format
+     * stored in the booking notes. Used to retrieve client contact info
+     * for sending emails since public bookings don't have a linked user account.
+     */
     private function extractField(?string $notes, string $field): string
     {
         if (!$notes) return '';

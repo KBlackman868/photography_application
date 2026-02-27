@@ -12,10 +12,20 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * User Profile Controller
+ *
+ * Manages personal account settings for both photographers and clients.
+ * Users can update their name, email, and avatar -- the avatar appears
+ * throughout the app in comments, activity logs, and the navigation bar,
+ * giving a personal touch to all interactions.
+ */
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Show the profile editing form.
+     * If the user's email requires verification (e.g., after changing it),
+     * the view will display a verification notice.
      */
     public function edit(Request $request): Response
     {
@@ -26,7 +36,10 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Update the user's name and email.
+     * If the email address changes, the verification status is reset so the
+     * user must re-verify their new email. This protects against typos and
+     * ensures the studio can always reach the user.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -42,7 +55,9 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's avatar.
+     * Upload or replace the user's avatar photo.
+     * The old avatar is deleted from storage to avoid accumulating orphaned
+     * files. Accepts common image formats up to 5MB.
      */
     public function updateAvatar(Request $request): RedirectResponse
     {
@@ -52,7 +67,7 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        // Delete old avatar if exists
+        // Clean up the old avatar file to save storage space
         if ($user->avatar_path && Storage::disk('public')->exists($user->avatar_path)) {
             Storage::disk('public')->delete($user->avatar_path);
         }
@@ -64,7 +79,10 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Permanently delete the user's account.
+     * Requires the current password as confirmation to prevent accidental
+     * deletion. Logs the user out and invalidates their session before
+     * removing the account, then redirects to the public landing page.
      */
     public function destroy(Request $request): RedirectResponse
     {

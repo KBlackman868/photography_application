@@ -13,6 +13,9 @@ interface BookingResult {
     created_at: string;
 }
 
+// Public booking status checker. Clients enter their reference number and email
+// to see a step-by-step progress tracker for their session booking.
+
 const STATUS_STEPS = ['inquiry', 'quoted', 'confirmed', 'deposit_paid', 'completed'];
 
 const STATUS_COLORS: Record<string, string> = {

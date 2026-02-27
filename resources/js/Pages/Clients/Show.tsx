@@ -11,6 +11,9 @@ interface Props extends PageProps {
     };
 }
 
+// Client detail page showing their profile card, linked projects and galleries,
+// and invoice history -- a single place to see everything about one client.
+
 export default function ClientShow({ auth, client }: Props) {
     return (
         <AuthenticatedLayout

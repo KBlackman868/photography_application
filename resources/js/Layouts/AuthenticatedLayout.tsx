@@ -5,6 +5,11 @@ import { Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 
+// Main app shell for logged-in users. Renders the top nav bar with studio logo,
+// dark mode toggle, and user dropdown. Admins see the full nav (Projects, Clients,
+// Portfolios, Bookings, etc.) while clients only see Dashboard and Galleries.
+// Includes a responsive hamburger menu for mobile.
+
 export default function Authenticated({
     header,
     children,

@@ -9,21 +9,30 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * A single photo inside a public portfolio showcase.
+ *
+ * When uploaded, each photo is automatically converted into web-optimized
+ * versions (WebP format) for fast loading:
+ *  - "display" = large 1800px version for the main portfolio page view
+ *  - "thumb"   = small 500px square for grid/card layouts
+ */
 class PortfolioPhoto extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'portfolio_id',
-        'photo_path',
-        'display_path',
-        'thumb_path',
-        'caption',
-        'sort_order',
+        'photo_path',      // Original file path (legacy, before media library)
+        'display_path',    // Pre-generated display-size path (legacy)
+        'thumb_path',      // Pre-generated thumbnail path (legacy)
+        'caption',         // Optional description shown below the photo on the website
+        'sort_order',      // Controls the display order within the portfolio
     ];
 
-    /* ── Spatie Media ── */
+    /* ── Image Uploads ── */
 
+    /** Each portfolio photo stores one image file (replaces on re-upload). */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('photo')
@@ -31,6 +40,11 @@ class PortfolioPhoto extends Model implements HasMedia
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/tiff']);
     }
 
+    /**
+     * Automatically create web-optimized versions when a photo is uploaded:
+     *  - "display": 1800px wide, WebP, for the main portfolio view
+     *  - "thumb":   500px square, WebP, for grid layouts
+     */
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('display')
@@ -47,11 +61,15 @@ class PortfolioPhoto extends Model implements HasMedia
             ->quality(80);
     }
 
-    /* ── Accessors ── */
+    /* ── URL Accessors ──
+     * These return the best available URL for each size.
+     * They try the optimized version first, then the original upload,
+     * then fall back to legacy file paths stored in the database.
+     */
 
     /**
-     * Best available URL for the photo at display resolution.
-     * Falls back through: Spatie conversion → Spatie original → disk path.
+     * URL for the large display version of this portfolio photo.
+     * Tries optimized WebP first, falls back to the original upload.
      */
     public function getDisplayUrlAttribute(): ?string
     {
@@ -72,8 +90,8 @@ class PortfolioPhoto extends Model implements HasMedia
     }
 
     /**
-     * Best available URL for the photo at thumbnail resolution.
-     * Falls back through: Spatie conversion → Spatie original → disk path.
+     * URL for the small thumbnail version of this portfolio photo.
+     * Tries optimized WebP first, falls back to the original upload.
      */
     public function getThumbUrlAttribute(): ?string
     {
@@ -93,6 +111,7 @@ class PortfolioPhoto extends Model implements HasMedia
         return $this->photo_path ? '/storage/' . $this->photo_path : null;
     }
 
+    /** URL for the full original upload (no resizing or conversion). */
     public function getOriginalUrlAttribute(): ?string
     {
         $media = $this->getFirstMedia('photo');
@@ -105,6 +124,7 @@ class PortfolioPhoto extends Model implements HasMedia
 
     /* ── Relationships ── */
 
+    /** The portfolio category this photo belongs to. */
     public function portfolio(): BelongsTo
     {
         return $this->belongsTo(Portfolio::class);

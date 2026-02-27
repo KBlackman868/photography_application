@@ -6,6 +6,9 @@ interface Props {
     portfolio: Portfolio & { portfolio_photos: PortfolioPhoto[] };
 }
 
+// Public view of a single portfolio. Visitors browse all photos in a masonry
+// layout with hover captions, and can navigate back to the full portfolio page.
+
 const CATEGORY_LABELS: Record<string, string> = {
     wedding: 'Weddings',
     portrait: 'Portraits',

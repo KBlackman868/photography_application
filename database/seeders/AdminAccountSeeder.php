@@ -6,6 +6,12 @@ use App\Models\Studio;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/**
+ * AdminAccountSeeder — Creates (or updates) the primary admin/photographer account.
+ *
+ * Use this when you need to reset the admin login credentials without
+ * wiping the entire database. Run with: php artisan db:seed --class=AdminAccountSeeder
+ */
 class AdminAccountSeeder extends Seeder
 {
     public function run(): void

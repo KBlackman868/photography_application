@@ -13,6 +13,9 @@ interface Props extends PageProps {
     clients: { data: ClientWithProfile[] };
 }
 
+// Admin client directory. Lists all clients with contact info, company,
+// and project count. Includes a quick-add modal to onboard new clients.
+
 export default function ClientsIndex({ auth, clients }: Props) {
     const clientList = clients.data || [];
     const [showCreate, setShowCreate] = useState(false);

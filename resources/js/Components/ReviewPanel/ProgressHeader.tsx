@@ -1,6 +1,10 @@
 import { Gallery, GalleryProgress, SelectionProgress } from '@/types';
 import { useState } from 'react';
 
+// Progress header at the top of the review panel. Shows two progress bars:
+// how many comment threads are resolved, and how many photos are selected
+// vs. the selection limit. Also houses Export and Approve Selection actions.
+
 interface Props {
     gallery: Gallery;
     progress: GalleryProgress;

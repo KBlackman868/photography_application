@@ -57,6 +57,10 @@ interface Props extends PageProps {
     isAdmin: boolean;
 }
 
+// Dashboard page. Admins see studio stats (projects, photos, bookings), charts,
+// upcoming sessions, and a recent activity feed. Clients see a simple list of
+// galleries that have been shared with them.
+
 function extractFromNotes(notes: string | undefined, field: string): string {
     if (!notes) return '';
     const match = notes.match(new RegExp(`${field}:\\s*(.+)`, 'i'));

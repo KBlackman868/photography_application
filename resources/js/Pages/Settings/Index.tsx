@@ -32,6 +32,10 @@ interface Props extends PageProps {
     packages: PackageData[];
 }
 
+// Studio settings hub. Manage branding (logo, colors), hero images, photographer
+// photo, contact info, social links, availability hours, watermark preferences,
+// and session packages/pricing -- everything that powers the public-facing site.
+
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 const DEFAULT_HOURS: Record<string, { start: string; end: string; enabled: boolean }> = {

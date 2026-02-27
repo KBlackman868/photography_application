@@ -37,6 +37,9 @@ function extractFromNotes(notes: string | undefined, field: string): string {
     return match ? match[1].trim() : '';
 }
 
+// Admin booking list with status filter tabs (inquiry, confirmed, etc.).
+// Click "Manage" on any booking to update its status or send an email reply.
+
 export default function BookingsIndex({ bookings }: Props) {
     const [filter, setFilter] = useState('all');
     const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);

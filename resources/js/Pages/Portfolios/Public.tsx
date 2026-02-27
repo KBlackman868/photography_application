@@ -7,6 +7,10 @@ interface Props {
     portfolios: (Portfolio & { portfolio_photos: PortfolioPhoto[] })[];
 }
 
+// Public-facing portfolio gallery that website visitors see. Displays all published
+// portfolios organized by category (Weddings, Portraits, etc.) with filterable tabs
+// and a "Book Now" call-to-action.
+
 const CATEGORY_LABELS: Record<string, string> = {
     wedding: 'Weddings',
     portrait: 'Portraits',

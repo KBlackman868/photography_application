@@ -7,6 +7,9 @@ interface Props extends PageProps {
     galleries: { data: Gallery[] };
 }
 
+// Lists all photo galleries as cards with cover images and status badges.
+// Admins can create new galleries and delete existing ones.
+
 export default function GalleriesIndex({ auth, galleries }: Props) {
     const galleryList = galleries.data || [];
     const isAdmin = auth.user.role !== 'client';

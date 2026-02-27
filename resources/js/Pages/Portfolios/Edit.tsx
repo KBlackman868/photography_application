@@ -7,6 +7,9 @@ interface Props extends PageProps {
     portfolio: Portfolio & { portfolio_photos: PortfolioPhoto[] };
 }
 
+// Portfolio editor. Upload photos via drag-and-drop, set a cover image,
+// add captions, and toggle publish status. Changes appear on the public site.
+
 export default function PortfolioEdit({ portfolio }: Props) {
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);

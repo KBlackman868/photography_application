@@ -5,8 +5,22 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Formats gallery data for the frontend. This is what the client and admin
+ * see when loading a gallery -- its name, settings, photo count, and cover image.
+ */
 class GalleryResource extends JsonResource
 {
+    /**
+     * Shape the gallery data for the API response.
+     *
+     * Key fields:
+     * - cover_photo_path: Resolves to a full URL whether stored locally or on a CDN
+     * - selection_limit: How many photos the client is allowed to pick as favorites
+     * - allow_downloads/favorites/comments: Per-gallery feature toggles the photographer sets
+     * - expires_at: Optional deadline after which the gallery link stops working
+     * - project + client: Included only when the relationship is eager-loaded (admin views)
+     */
     public function toArray(Request $request): array
     {
         return [

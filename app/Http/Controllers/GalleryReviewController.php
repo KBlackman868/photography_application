@@ -11,6 +11,17 @@ use App\Services\SelectionLockService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * Gallery Review Panel Controller
+ *
+ * Powers the interactive photo review experience where clients browse, comment on,
+ * and select their favorite photos from a shoot. This is one of the most important
+ * client-facing features -- it replaces the old workflow of emailing low-res proofs
+ * back and forth with a modern, real-time review panel.
+ *
+ * The review panel supports filtering, threaded comments, progress tracking, and
+ * photo selection with configurable limits (e.g., "pick your 50 favorites").
+ */
 class GalleryReviewController extends Controller
 {
     public function __construct(
@@ -18,16 +29,24 @@ class GalleryReviewController extends Controller
         private SelectionLockService $selectionService,
     ) {}
 
+    /**
+     * Render the review panel for a gallery.
+     * This single method does a lot because the review panel is a rich, interactive
+     * page that needs photos, comments, filters, progress data, and selection state
+     * all at once to avoid multiple round-trips.
+     */
     public function show(Request $request, Gallery $gallery)
     {
         $user = $request->user();
 
         $gallery->load(['project.client', 'studio']);
 
-        // Build photo query with filters
+        // Build photo query with filters -- clients can narrow down large
+        // galleries to find specific photos or focus on photos that need attention
         $photoQuery = $gallery->photos()->visible();
 
-        // Search by filename/tags
+        // Search by filename or tags so clients can find specific shots
+        // (e.g., searching "ceremony" or "group" in a wedding gallery)
         if ($search = $request->input('search')) {
             $photoQuery->where(function ($q) use ($search) {
                 $q->where('filename', 'like', "%{$search}%")
@@ -35,7 +54,12 @@ class GalleryReviewController extends Controller
             });
         }
 
-        // Filters
+        // Filter options help both photographer and client focus their review:
+        // - favorited: show only photos the user has hearted
+        // - has_comments: show photos with feedback that may need attention
+        // - unresolved_only: show photos with open discussion threads
+        // - rating: filter by star rating (photographer's quality rating)
+        // - color_label: filter by color-coded categories set by the photographer
         if ($request->boolean('favorited')) {
             $photoQuery->favorited($user);
         }
@@ -58,7 +82,8 @@ class GalleryReviewController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        // Get comments for selected photo (or first photo)
+        // Load threaded comments for the currently selected photo.
+        // Defaults to the first photo so the comment panel is never empty.
         $selectedPhotoId = $request->input('photo_id', $photos->first()?->id);
         $comments = [];
 
@@ -68,7 +93,8 @@ class GalleryReviewController extends Controller
                 ->with(['user', 'replies.user', 'resolver'])
                 ->orderBy('created_at');
 
-            // Hide internal comments from clients
+            // Internal comments are photographer-only notes (e.g., editing reminders)
+            // that clients should never see
             if ($user->isClient()) {
                 $commentQuery->where('is_internal', false);
             }
@@ -76,9 +102,14 @@ class GalleryReviewController extends Controller
             $comments = CommentResource::collection($commentQuery->get());
         }
 
+        // Progress tracking shows how far along the review is -- helpful for both
+        // the photographer (to know when the client is done) and the client
+        // (to see how many photos they still need to review/select)
         $progress = $this->progressService->calculate($gallery);
         $selectionProgress = $this->progressService->selectionProgress($gallery, $user->id);
 
+        // Load which photos the client has already selected so the UI can
+        // show checkmarks and enforce the selection limit
         $selection = $gallery->selections()->where('user_id', $user->id)->first();
         $selectedPhotoIds = $selection ? $selection->photos()->pluck('photo_id')->toArray() : [];
 

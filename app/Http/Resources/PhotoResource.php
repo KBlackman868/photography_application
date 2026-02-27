@@ -5,8 +5,17 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Formats individual photo data for the frontend. Provides appropriately-sized
+ * image URLs for gallery grids (thumb) and full viewing (preview), while keeping
+ * the high-resolution original restricted to admin users only.
+ */
 class PhotoResource extends JsonResource
 {
+    /**
+     * Convert a storage path to a full URL. Handles both local paths and
+     * absolute URLs (e.g., from a CDN) so the frontend always gets a usable link.
+     */
     private function toUrl(?string $path): ?string
     {
         if (!$path) {
@@ -16,6 +25,14 @@ class PhotoResource extends JsonResource
         return str_starts_with($path, 'http') ? $path : asset('storage/'.$path);
     }
 
+    /**
+     * Shape the photo data for the API response.
+     *
+     * - preview_url / thumb_url: Sized-down versions for fast gallery loading
+     * - original_url: Full-resolution file -- only exposed to admin users to protect the master files
+     * - is_favorited: Whether the current logged-in client has favorited this photo
+     * - exif_data: Camera settings (aperture, shutter speed, ISO, etc.) for photography enthusiasts
+     */
     public function toArray(Request $request): array
     {
         $user = $request->user();

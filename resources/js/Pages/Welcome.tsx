@@ -50,6 +50,14 @@ interface WelcomeProps extends PageProps {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Public landing page for the photography studio.                    */
+/*  Hero section with animated text (useTextScramble), portfolio grid  */
+/*  with category filters, client testimonials, "meet the             */
+/*  photographer" section, and contact info. Sections fade in on       */
+/*  scroll using the useScrollReveal hook.                             */
+/* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 const imgSrc = (p: string) => (p.startsWith('http') || p.startsWith('/')) ? p : '/storage/' + p;

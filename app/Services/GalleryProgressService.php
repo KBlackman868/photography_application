@@ -4,8 +4,20 @@ namespace App\Services;
 
 use App\Models\Gallery;
 
+/**
+ * Tracks how far along a gallery review is so the photographer knows
+ * when a client has finished reviewing and selecting their favorites.
+ */
 class GalleryProgressService
 {
+    /**
+     * Build an overview of the gallery's review status -- how many photos,
+     * how many client comments, how many have been resolved, and total favorites.
+     * This powers the progress dashboard so the photographer can see at a glance
+     * whether a gallery still needs attention.
+     *
+     * @return array{total_photos: int, total_comments: int, resolved_comments: int, unresolved_comments: int, percent_resolved: int, total_favorites: int}
+     */
     public function calculate(Gallery $gallery): array
     {
         $photos = $gallery->photos()
@@ -30,6 +42,14 @@ class GalleryProgressService
         ];
     }
 
+    /**
+     * Show how far a specific client is in picking their final photos.
+     * Returns how many they have selected out of the allowed limit, the
+     * percentage complete, and whether the selection is still editable or locked.
+     * This helps both the client and the photographer track the selection process.
+     *
+     * @return array{selected: int, limit: int, percent: int, status: string, is_locked: bool}
+     */
     public function selectionProgress(Gallery $gallery, int $userId): array
     {
         $selection = $gallery->selections()->where('user_id', $userId)->first();

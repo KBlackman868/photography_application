@@ -5,8 +5,22 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Formats threaded photo comments for the frontend. Comments let clients and
+ * photographers discuss specific photos -- for example, "Can you brighten this one?"
+ * or "Love this shot!" Comments can be pinned to a spot on the photo, marked as
+ * internal (studio-only), and resolved once the feedback has been addressed.
+ */
 class CommentResource extends JsonResource
 {
+    /**
+     * Shape the comment data for the API response.
+     *
+     * - is_internal: If true, only studio staff can see this comment (not the client)
+     * - is_resolved / resolved_at / resolved_by: Tracks whether feedback has been handled
+     * - pin_position: X/Y coordinates if the comment is pinned to a specific spot on the photo
+     * - replies: Nested child comments for threaded conversations
+     */
     public function toArray(Request $request): array
     {
         return [

@@ -9,6 +9,11 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Sent to the client immediately after they submit a booking request.
+ * Lets them know the studio received their inquiry and gives them a reference
+ * for follow-up. This is the first touchpoint after a potential client reaches out.
+ */
 class BookingConfirmation extends Mailable
 {
     use Queueable, SerializesModels;

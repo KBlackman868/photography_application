@@ -1,6 +1,10 @@
 import { Photo, FilterState } from '@/types';
 import { useState, useMemo } from 'react';
 
+// Thumbnail grid sidebar for the review panel. Provides search, quick-filter
+// buttons (favorites, comments, unresolved), and color-label filters so
+// clients and admins can quickly find specific photos during review.
+
 interface Props {
     photos: Photo[];
     selectedPhotoId: number;

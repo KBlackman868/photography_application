@@ -9,6 +9,11 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Sent to the client when the photographer changes their booking status --
+ * for example, from "pending" to "confirmed" or "completed." Keeps the client
+ * informed about where things stand without them having to ask.
+ */
 class BookingStatusUpdate extends Mailable
 {
     use Queueable, SerializesModels;

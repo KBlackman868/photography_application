@@ -9,6 +9,11 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Sent to the client when the photographer replies to their booking inquiry.
+ * This keeps the conversation going via email so the client does not need to
+ * log in or check a portal -- they just reply to the email thread.
+ */
 class BookingResponse extends Mailable
 {
     use Queueable, SerializesModels;

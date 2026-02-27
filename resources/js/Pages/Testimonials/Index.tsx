@@ -19,6 +19,10 @@ interface Props extends PageProps {
     testimonials: TestimonialData[];
 }
 
+// Admin testimonial management. Add, edit, and delete client testimonials
+// that are displayed on the public landing page. Supports star ratings,
+// featured badges, client photos, and visibility toggling.
+
 function StarRating({ rating, onChange }: { rating: number; onChange?: (r: number) => void }) {
     return (
         <div className="flex gap-0.5">

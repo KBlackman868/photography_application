@@ -9,6 +9,9 @@ interface Props extends PageProps {
     photos: { data: Photo[]; links: any; meta: any };
 }
 
+// View a single gallery's photos in a masonry grid. Admins can drag-and-drop
+// upload new photos. Clients can favorite images and jump into the review panel.
+
 export default function GalleryShow({ auth, gallery, photos }: Props) {
     const [photoList, setPhotoList] = useState<Photo[]>(photos.data);
     const [search, setSearch] = useState('');

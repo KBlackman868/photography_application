@@ -11,17 +11,27 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Guest Routes -- For users who are NOT logged in
+|--------------------------------------------------------------------------
+| Registration, login, and password recovery. Clients are invited to register
+| so they can access their private galleries and manage their profile.
+*/
 Route::middleware('guest')->group(function () {
+    // Account creation -- clients register to view their galleries
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
+    // Login
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
+    // Password recovery flow
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
@@ -35,7 +45,15 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes -- For logged-in users
+|--------------------------------------------------------------------------
+| Email verification, password management, and logout. These ensure clients
+| have a verified email before accessing their galleries.
+*/
 Route::middleware('auth')->group(function () {
+    // Email verification -- required before clients can access galleries
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 
@@ -47,11 +65,13 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
+    // Password confirmation -- extra security before sensitive actions
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
+    // Password change and logout
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])

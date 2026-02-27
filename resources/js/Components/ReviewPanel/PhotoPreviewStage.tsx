@@ -1,6 +1,10 @@
 import { Photo } from '@/types';
 import { useState, useRef, useCallback } from 'react';
 
+// Large photo preview area in the center of the review panel.
+// Supports zoom, rotate, pan (when zoomed), fullscreen, and keyboard
+// navigation (J/K for prev/next, F for favorite). Shows EXIF metadata.
+
 interface Props {
     photo: Photo | null;
     onPrev: () => void;

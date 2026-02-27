@@ -6,8 +6,22 @@ use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * Testimonial Controller
+ *
+ * Manages client testimonials -- the social proof that helps convert website
+ * visitors into paying clients. Happy client quotes with star ratings are
+ * one of the most effective marketing tools for a photography business.
+ * Featured testimonials get priority placement on the landing page.
+ */
 class TestimonialController extends Controller
 {
+    /**
+     * List all testimonials for the studio.
+     * Ordered by sort position first, then by newest, so the photographer
+     * can control which testimonials appear first while newer ones
+     * naturally bubble up within each sort group.
+     */
     public function index(Request $request)
     {
         $studio = $request->user()->studio;
@@ -27,6 +41,13 @@ class TestimonialController extends Controller
         ]);
     }
 
+    /**
+     * Add a new testimonial.
+     * The photographer typically adds these after receiving positive feedback
+     * from a client. Key fields: the client's name and optional role (e.g.,
+     * "Bride", "Marketing Director"), their quote, a 1-5 star rating, and
+     * whether to feature it prominently on the landing page.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -49,6 +70,11 @@ class TestimonialController extends Controller
         return back()->with('success', 'Testimonial created.');
     }
 
+    /**
+     * Update a testimonial's content, rating, or visibility.
+     * Allows toggling is_featured (highlighted on the landing page) and
+     * is_active (visible vs hidden) without deleting.
+     */
     public function update(Request $request, Testimonial $testimonial)
     {
         $validated = $request->validate([
@@ -65,6 +91,11 @@ class TestimonialController extends Controller
         return back()->with('success', 'Testimonial updated.');
     }
 
+    /**
+     * Delete a testimonial and its associated photo.
+     * Cleans up the Spatie media collection before removing the record
+     * to avoid orphaned files on disk.
+     */
     public function destroy(Testimonial $testimonial)
     {
         $testimonial->clearMediaCollection('photo');
@@ -73,6 +104,11 @@ class TestimonialController extends Controller
         return back()->with('success', 'Testimonial deleted.');
     }
 
+    /**
+     * Upload a client photo to display alongside their testimonial.
+     * A photo of the happy client (or their event) adds authenticity and
+     * makes the testimonial more personal and trustworthy for visitors.
+     */
     public function uploadPhoto(Request $request, Testimonial $testimonial)
     {
         $request->validate([

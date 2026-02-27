@@ -2,6 +2,10 @@ import { Comment, User } from '@/types';
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
+// Threaded comments panel on the right side of the review panel.
+// Clients leave feedback on individual photos, admins can reply and mark
+// threads as resolved. Supports internal-only notes visible only to staff.
+
 interface Props {
     comments: Comment[];
     photoId: number | null;

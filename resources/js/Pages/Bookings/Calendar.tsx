@@ -27,6 +27,9 @@ const STATUS_COLORS: Record<string, string> = {
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 7); // 7am to 7pm
 
+// Admin calendar view of all bookings. Toggle between month and week views.
+// Click any event to see details. Color-coded by booking status.
+
 export default function BookingCalendar({ bookings }: Props) {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [view, setView] = useState<'month' | 'week'>('month');

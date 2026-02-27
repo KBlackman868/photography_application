@@ -28,6 +28,12 @@ interface Props extends PageProps {
     filters: FilterState;
 }
 
+// The core review experience where clients and admins collaborate on photo selections.
+// Three-column layout: thumbnail sidebar (left) with search/filter, large photo
+// preview (center) with keyboard navigation (J/K/F/C), and threaded comments
+// (right) with resolve tracking. A progress header shows comment resolution and
+// selection counts, plus export and approval actions.
+
 export default function ReviewPanel({
     auth,
     gallery,

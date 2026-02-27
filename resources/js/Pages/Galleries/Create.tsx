@@ -6,6 +6,9 @@ interface Props extends PageProps {
     projects: Project[];
 }
 
+// Form for creating a new gallery. Choose a project, set a selection limit,
+// and configure permissions (favorites, comments, downloads) for the client.
+
 export default function GalleryCreate({ auth, projects }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',

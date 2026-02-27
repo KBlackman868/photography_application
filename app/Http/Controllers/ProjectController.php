@@ -7,8 +7,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
+/**
+ * Photography Project Controller
+ *
+ * A "project" represents a photography shoot or engagement -- wedding, portrait
+ * session, commercial shoot, etc. Projects are the central organizing unit that
+ * ties together clients, galleries, and the overall workflow from initial inquiry
+ * through final delivery.
+ */
 class ProjectController extends Controller
 {
+    /**
+     * List all projects for the studio.
+     * Shows each project with its assigned client and galleries, giving the
+     * photographer a clear picture of their workload and project pipeline.
+     */
     public function index(Request $request)
     {
         $projects = Project::where('studio_id', $request->user()->studio_id)
@@ -22,6 +35,12 @@ class ProjectController extends Controller
         ]);
     }
 
+    /**
+     * Create a new photography project.
+     * Supports all common shoot types: wedding, portrait, event, commercial,
+     * newborn, engagement, and other. A URL-friendly slug is auto-generated
+     * with a random suffix to avoid collisions (e.g., two "Smith Wedding" projects).
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -42,6 +61,12 @@ class ProjectController extends Controller
         return redirect()->route('projects.index')->with('success', 'Project created.');
     }
 
+    /**
+     * Update a project's details or advance its status.
+     * The status lifecycle tracks the project from first contact to final delivery:
+     * inquiry -> booked -> in_progress -> delivered -> completed -> archived.
+     * This helps the photographer manage their workflow at a glance.
+     */
     public function update(Request $request, Project $project)
     {
         $validated = $request->validate([
@@ -57,6 +82,11 @@ class ProjectController extends Controller
         return back()->with('success', 'Project updated.');
     }
 
+    /**
+     * Delete a project.
+     * Use with care -- this removes the project record. Associated galleries
+     * may need to be handled separately depending on cascade settings.
+     */
     public function destroy(Project $project)
     {
         $project->delete();

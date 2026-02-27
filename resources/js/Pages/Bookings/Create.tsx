@@ -20,6 +20,12 @@ interface Props {
     availabilityHours: AvailabilityHours | null;
 }
 
+// Public booking form where potential clients request a session.
+// Left side: interactive calendar with real-time availability (grays out
+// fully-booked dates and unavailable days). Right side: contact info,
+// session type, optional package selection, and a message field.
+// Fetches booked slots from the API to prevent double-booking.
+
 const SESSION_TYPES = [
     'Wedding',
     'Engagement',

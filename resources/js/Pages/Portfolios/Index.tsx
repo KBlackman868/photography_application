@@ -7,6 +7,9 @@ interface Props extends PageProps {
     portfolios: Portfolio[];
 }
 
+// Admin portfolio management. Create, publish, or delete portfolio collections
+// that showcase your best work on the public website.
+
 export default function PortfoliosIndex({ auth, portfolios }: Props) {
     const [showCreate, setShowCreate] = useState(false);
     const [deleting, setDeleting] = useState<number | null>(null);
