@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Camera, ArrowRight } from 'lucide-react';
+import { Camera, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Portfolio, PortfolioPhoto } from '@/types';
+import { RadialScrollGallery } from '@/Components/ui/portfolio-and-image-gallery';
+import { Badge } from '@/Components/ui/badge';
 
 interface Props {
     portfolios: (Portfolio & { portfolio_photos: PortfolioPhoto[] })[];
 }
 
-// Public-facing portfolio gallery that website visitors see. Displays all published
-// portfolios organized by category (Weddings, Portraits, etc.) with filterable tabs
-// and a "Book Now" call-to-action.
+// Public-facing portfolio gallery that website visitors see. The hero section uses a
+// scroll-driven radial wheel to showcase portfolio covers. Below the wheel, visitors
+// can filter by category and browse the full grid of portfolios.
 
 const CATEGORY_LABELS: Record<string, string> = {
     wedding: 'Weddings',
@@ -21,6 +23,28 @@ const CATEGORY_LABELS: Record<string, string> = {
     other: 'Other',
 };
 
+const FALLBACK_IMAGES = [
+    'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=400&q=80',
+    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80',
+    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&q=80',
+    'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=400&q=80',
+    'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80',
+    'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=400&q=80',
+    'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80',
+    'https://images.unsplash.com/photo-1505932794465-147d1f1b2c97?w=400&q=80',
+];
+
+function getPortfolioImage(
+    portfolio: Portfolio & { portfolio_photos: PortfolioPhoto[] },
+    fallbackIndex: number
+): string {
+    const photo = portfolio.portfolio_photos[0];
+    if (photo) {
+        return photo.display_url || photo.original_url || (photo.photo_path ? `/storage/${photo.photo_path}` : '');
+    }
+    return FALLBACK_IMAGES[fallbackIndex % FALLBACK_IMAGES.length];
+}
+
 export default function PublicPortfolio({ portfolios }: Props) {
     const categories = [...new Set(portfolios.map((p) => p.category))];
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -28,6 +52,15 @@ export default function PublicPortfolio({ portfolios }: Props) {
     const filtered = activeCategory
         ? portfolios.filter((p) => p.category === activeCategory)
         : portfolios;
+
+    // Pick up to 8 portfolios for the radial gallery hero
+    const galleryItems = portfolios.slice(0, 8).map((p, i) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        cat: CATEGORY_LABELS[p.category] || p.category,
+        img: getPortfolioImage(p, i),
+    }));
 
     return (
         <>
@@ -50,18 +83,88 @@ export default function PublicPortfolio({ portfolios }: Props) {
             </header>
 
             <main className="min-h-screen bg-white">
-                {/* Hero */}
-                <section className="py-20 px-6 text-center bg-gray-50">
-                    <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold mb-4">
-                        My Work
-                    </p>
-                    <h1 className="font-display text-4xl md:text-6xl font-bold text-slate-900 mb-4">
-                        Portfolio
-                    </h1>
-                    <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-                        Browse through my recent work organized by category. Every session tells a unique story.
-                    </p>
-                </section>
+                {/* ── Radial Gallery Hero ── */}
+                <div className="bg-background min-h-[600px] text-foreground overflow-hidden w-full">
+                    <div className="h-[280px] flex flex-col items-center justify-center space-y-4 pt-8">
+                        <div className="space-y-1 text-center">
+                            <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                                Portfolio
+                            </span>
+                            <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tighter text-slate-900">
+                                My Work
+                            </h1>
+                            <p className="text-slate-500 text-sm max-w-xs mx-auto mt-2">
+                                Scroll to explore — hover to focus
+                            </p>
+                        </div>
+                        <div className="animate-bounce text-muted-foreground text-xs">↓ Scroll</div>
+                    </div>
+
+                    {galleryItems.length > 0 ? (
+                        <RadialScrollGallery
+                            className="!min-h-[600px]"
+                            baseRadius={400}
+                            mobileRadius={250}
+                            visiblePercentage={50}
+                            scrollDuration={2000}
+                            onItemSelect={(index) => {
+                                const item = galleryItems[index];
+                                if (item) window.location.href = `/portfolio/${item.slug}`;
+                            }}
+                        >
+                            {(hoveredIndex) =>
+                                galleryItems.map((item, index) => {
+                                    const isActive = hoveredIndex === index;
+                                    return (
+                                        <div
+                                            key={item.id}
+                                            className="group relative w-[180px] h-[250px] sm:w-[220px] sm:h-[300px] overflow-hidden rounded-xl bg-slate-100 border border-slate-200 shadow-lg"
+                                        >
+                                            <div className="absolute inset-0 overflow-hidden">
+                                                <img
+                                                    src={item.img}
+                                                    alt={item.title}
+                                                    className={`h-full w-full object-cover transition-transform duration-700 ease-out ${
+                                                        isActive ? 'scale-110' : 'scale-100 grayscale-[20%]'
+                                                    }`}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+                                                        e.currentTarget.onerror = null;
+                                                    }}
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-70" />
+                                            </div>
+
+                                            <div className="absolute inset-0 flex flex-col justify-between p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="text-[10px] px-2 py-0 bg-white/80 backdrop-blur text-slate-700 border-0"
+                                                    >
+                                                        {item.cat}
+                                                    </Badge>
+                                                    <div className={`w-6 h-6 rounded-full bg-white text-slate-900 flex items-center justify-center transition-all duration-500 ${isActive ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-45'}`}>
+                                                        <ArrowUpRight size={12} />
+                                                    </div>
+                                                </div>
+
+                                                <div className={`transition-transform duration-500 ${isActive ? 'translate-y-0' : 'translate-y-2'}`}>
+                                                    <h3 className="text-lg font-bold leading-tight text-white">{item.title}</h3>
+                                                    <div className={`h-0.5 bg-white mt-2 transition-all duration-500 ${isActive ? 'w-full opacity-100' : 'w-0 opacity-0'}`} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            }
+                        </RadialScrollGallery>
+                    ) : (
+                        <div className="h-[400px] flex flex-col items-center justify-center text-slate-400">
+                            <Camera className="w-12 h-12 mb-4 opacity-30" />
+                            <p className="text-lg">No portfolios yet — check back soon.</p>
+                        </div>
+                    )}
+                </div>
 
                 {/* Category filters */}
                 <section className="px-6 py-8 border-b border-slate-100 sticky top-[65px] bg-white z-40">
@@ -103,7 +206,6 @@ export default function PublicPortfolio({ portfolios }: Props) {
                             <div className="space-y-20">
                                 {filtered.map((portfolio) => (
                                     <div key={portfolio.id}>
-                                        {/* Section header */}
                                         <div className="flex items-end justify-between mb-8">
                                             <div>
                                                 <span className="text-xs uppercase tracking-[0.2em] text-primary font-semibold">
@@ -125,7 +227,6 @@ export default function PublicPortfolio({ portfolios }: Props) {
                                             </Link>
                                         </div>
 
-                                        {/* Photo grid */}
                                         {portfolio.portfolio_photos && portfolio.portfolio_photos.length > 0 ? (
                                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                 {portfolio.portfolio_photos.slice(0, 8).map((photo, index) => (

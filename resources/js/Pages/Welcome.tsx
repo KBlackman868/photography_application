@@ -3,6 +3,8 @@ import { Head, Link } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useTextScramble } from '@/hooks/useTextScramble';
+import AboutSection1 from '@/Components/ui/about-section-1';
+import { CinematicFooter } from '@/Components/ui/motion-footer';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -847,7 +849,10 @@ export default function Welcome({
                     </div>
                 </section>
 
-                {/* ================== 7. CTA / BOOKING ================== */}
+                {/* ================== 7. ABOUT ================== */}
+                <AboutSection1 />
+
+                {/* ================== 8. CTA / BOOKING ================== */}
                 <section
                     className="relative py-32 md:py-44 px-4 md:px-8 lg:px-16 overflow-hidden parallax-bg"
                     style={{
@@ -888,8 +893,10 @@ export default function Welcome({
                 </section>
             </main>
 
-            {/* ========================= 8. FOOTER ========================= */}
-            <footer className="bg-background-dark border-t border-white/[0.06] py-14 px-4 md:px-8 lg:px-16">
+            {/* ========================= 9. FOOTER ========================= */}
+            <CinematicFooter />
+            {/* Legacy footer kept for reference — hidden */}
+            <footer className="hidden bg-background-dark border-t border-white/[0.06] py-14 px-4 md:px-8 lg:px-16">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         {/* Brand */}
